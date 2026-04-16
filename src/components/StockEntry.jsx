@@ -29,9 +29,12 @@ function BarcodeStrip({ code, height=58 }) {
 }
 
 const DESIGNS = [
-  {id:"single_vision", n:"সিঙ্গেল ভিশন"}, {id:"bifocal_moon", n:"মুন বাইফোকাল"}, 
-  {id:"bifocal_d", n:"ডি-বাইফোকাল"}, {id:"progressive", n:"প্রগ্রেসিভ"}, 
-  {id:"high_index", n:"হাই ইনডেক্স"}, {id:"polycarbonate", n:"পলিকার্বোনেট"}
+  {id:"single_vision", n:"সিঙ্গেল ভিশন", sub:"Single Vision"}, 
+  {id:"bifocal_moon", n:"মুন বাইফোকাল", sub:"Moon Bifocal"}, 
+  {id:"bifocal_d", n:"ডি-বাইফোকাল", sub:"D-Bifocal"}, 
+  {id:"progressive", n:"প্রগ্রেসিভ", sub:"Progressive/Varilux"}, 
+  {id:"high_index", n:"হাই ইনডেক্স", sub:"High Index"}, 
+  {id:"polycarbonate", n:"পলিকার্বোনেট", sub:"Polycarbonate"}
 ];
 
 export default function StockEntry({ authUser, stock, setStock, txns, setTxns }) {
@@ -57,9 +60,11 @@ export default function StockEntry({ authUser, stock, setStock, txns, setTxns })
         const data = await response.json();
         setDbGlassTypes(data);
         
-        // Auto-select the first glass type if none is selected
-        if (data.length > 0) {
-            setForm(prev => ({ ...prev, glassType: data[0].id }));
+        // Auto-select the first valid glass type if none is selected
+        const targetCoatings = ["হোয়াইট", "ব্লু কাট", "ফটোক্রোমিক", "এমসি"];
+        const validData = data.filter(g => targetCoatings.includes(g.name));
+        if (validData.length > 0) {
+            setForm(prev => ({ ...prev, glassType: validData[0].id }));
         }
       } catch (err) {
         toast.error("গ্লাসের তথ্য লোড করা সম্ভব হয়নি!");
@@ -182,6 +187,8 @@ export default function StockEntry({ authUser, stock, setStock, txns, setTxns })
 
           <div className="bg-[#050810] p-4 rounded-xl border border-[#1a2540] mb-6">
             <h3 className="text-[10px] font-black text-[#22d3ee] uppercase tracking-widest mb-4">◈ লেন্স টাইপ নির্বাচন</h3>
+            
+            {/* COATINGS SECTION */}
             <div style={lbl}>কোটিং</div>
             {isLoadingGlasses ? (
               <div className="grid grid-cols-2 gap-3 mb-5">
@@ -190,37 +197,53 @@ export default function StockEntry({ authUser, stock, setStock, txns, setTxns })
               </div>
             ) : (
               <div className="grid grid-cols-2 gap-3 mb-5">
-                {dbGlassTypes.map(g => (
-                  <button key={g.id} onClick={() => setForm({...form, glassType: g.id})} style={{padding:"10px", borderRadius:"8px", border:`2px solid ${form.glassType===g.id ? g.accentColor : C.bdr}`, background: form.glassType===g.id ? g.accentColor+"14" : "#0a0e1a", textAlign:"left", display:"flex", gap:"10px", alignItems:"center", cursor:"pointer", transition: "all 0.2s"}}>
-                    <div style={{width:10, height:10, borderRadius:"50%", background: g.accentColor}}/>
+                {dbGlassTypes
+                  .filter(g => ["হোয়াইট", "ব্লু কাট", "ফটোক্রোমিক", "এমসি"].includes(g.name))
+                  .map(g => (
+                  <button key={g.id} onClick={() => setForm({...form, glassType: g.id})} 
+                    style={{padding:"10px", borderRadius:"10px", border:`2px solid ${form.glassType===g.id ? g.accentColor : "#1a2540"}`, background: form.glassType===g.id ? g.accentColor+"14" : "transparent", textAlign:"left", display:"flex", gap:"10px", alignItems:"center", cursor:"pointer", transition: "all 0.2s"}}>
+                    <div style={{width:12, height:12, borderRadius:"50%", background: g.accentColor, boxShadow: form.glassType===g.id ? `0 0 10px ${g.accentColor}` : "none"}}/>
                     <div>
-                      <div style={{fontSize:"11px", fontWeight:"bold", color: form.glassType===g.id ? g.accentColor : "#fff"}}>{g.name}</div>
-                      <div style={{fontSize:"9px", color:C.txts}}>{g.subName}</div>
+                      <div style={{fontSize:"13px", fontWeight:"bold", color: "#fff"}}>{g.name}</div>
+                      <div style={{fontSize:"10px", color:"#4a5a70"}}>{g.subName}</div>
                     </div>
                   </button>
                 ))}
               </div>
             )}
+
+            {/* LENS DESIGN SECTION */}
             <div style={lbl}>লেন্স ডিজাইন</div>
-            <div className="grid grid-cols-3 gap-3">
+            <div className="grid grid-cols-3 gap-3 mb-5">
               {DESIGNS.map(d => (
-                <button key={d.id} onClick={() => setForm({...form, glassDesign: d.id})} style={{padding:"8px", borderRadius:"8px", border:`2px solid ${form.glassDesign===d.id ? C.cyan : C.bdr}`, background: form.glassDesign===d.id ? "#07202e" : "#0a0e1a", color: form.glassDesign===d.id ? C.cyan : C.txt, fontSize:"10px", fontWeight:"bold", cursor:"pointer", transition: "all 0.2s"}}>
-                  {d.n}
+                <button key={d.id} onClick={() => setForm({...form, glassDesign: d.id})} 
+                  style={{padding:"10px", borderRadius:"10px", border:`2px solid ${form.glassDesign===d.id ? "#22d3ee" : "#1a2540"}`, background: form.glassDesign===d.id ? "#07202e" : "transparent", textAlign:"left", cursor:"pointer", transition: "all 0.2s"}}>
+                  <div style={{fontSize:"12px", fontWeight:"bold", color: form.glassDesign===d.id ? "#22d3ee" : "#dde6f0"}}>{d.n}</div>
+                  <div style={{fontSize:"9px", color: form.glassDesign===d.id ? "#22d3ee" : "#4a5a70", opacity: 0.8}}>{d.sub}</div>
                 </button>
               ))}
+            </div>
+
+            {/* SELECTED LENS SUMMARY BAR */}
+            <div className="bg-[#0a0e1a] p-3 rounded-lg border border-[#1a2540] flex items-center gap-3">
+                <span className="text-[10px] text-[#4a5a70] uppercase tracking-wider">নির্বাচিত লেন্স</span>
+                <div style={{width:10, height:10, borderRadius:"50%", background: dbGlassTypes.find(g => g.id === form.glassType)?.accentColor || "#fff"}} />
+                <span className="text-[12px] font-bold text-white">{dbGlassTypes.find(g => g.id === form.glassType)?.name || "---"}</span>
+                <span className="text-[12px] text-[#4a5a70]">+</span>
+                <span className="text-[12px] font-bold text-[#22d3ee]">{DESIGNS.find(d => d.id === form.glassDesign)?.n || "---"}</span>
             </div>
           </div>
 
           <div className="bg-[#050810] p-4 rounded-xl border border-[#1a2540] mb-6">
             <h3 className="text-[10px] font-black text-[#22d3ee] uppercase tracking-widest mb-4">◈ প্রেসক্রিপশন পাওয়ার</h3>
             <div className="grid grid-cols-2 gap-4 mb-4">
-              <div><label style={{...lbl, color:"#f472b6"}}>SPH</label>
+              <div><label style={{...lbl, color:"#f472b6"}}>SPH (SPHERE)</label>
                 <select value={form.sph} onChange={e => setForm({...form, sph: e.target.value})} style={inp}>
                   <optgroup label="── মাইনাস ──">{SPH_LIST.filter(p=>p.value<0).reverse().map(p=><option key={p.label} value={p.label}>{p.label}</option>)}</optgroup>
                   <optgroup label="── প্লাস ──">{SPH_LIST.filter(p=>p.value>=0).map(p=><option key={p.label} value={p.label}>{p.label}</option>)}</optgroup>
                 </select>
               </div>
-              <div><label style={{...lbl, color:"#a3e635"}}>CYL</label>
+              <div><label style={{...lbl, color:"#a3e635"}}>CYL (CYLINDER)</label>
                 <select value={form.cyl} onChange={e => setForm({...form, cyl: e.target.value})} style={inp}>{CYL_LIST.map(c => <option key={c.value} value={c.value===0?"0.00":c.value>0?"+"+c.value.toFixed(2):c.value.toFixed(2)}>{c.label}</option>)}</select>
               </div>
             </div>
