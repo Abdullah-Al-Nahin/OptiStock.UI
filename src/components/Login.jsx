@@ -8,12 +8,15 @@ export default function Login({ onLogin }) {
   const [loading, setLoading] = useState(false);
   const toast = useToast();
 
+  // Safe default for VITE API URL
+  const API_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000";
+
   const handleLogin = async (e) => {
     e.preventDefault();
     setLoading(true);
 
     try {
-      const response = await fetch("https://localhost:7200/api/Auth/login", {
+      const response = await fetch(`${API_URL}/api/Auth/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ username, password })
