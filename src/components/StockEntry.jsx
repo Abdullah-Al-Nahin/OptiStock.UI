@@ -36,8 +36,11 @@ const DESIGNS = [
 
 export default function StockEntry({ authUser, stock, setStock, txns, setTxns }) {
   const toast = useToast();
+  // Safe default for VITE API URL
+  const API_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000";
+
   const [form, setForm] = useState({
-    direction: "in", subtype: "purchase", glassType: "white", glassDesign: "single_vision",
+    direction: "in", subtype: "purchase", glassType: "", glassDesign: "single_vision",
     sph: "-1.50", cyl: "0.00", add: "0.00", qty: "1", unitPrice: "", note: "", customerName: "" 
   });
 
@@ -47,20 +50,25 @@ export default function StockEntry({ authUser, stock, setStock, txns, setTxns })
   useEffect(() => {
     const fetchGlassTypes = async () => {
       try {
-        const response = await fetch(`${API_BASE_URL}/api/GlassTypes`, {
+        const response = await fetch(`${API_URL}/api/GlassTypes`, {
             headers: { "Authorization": `Bearer ${authUser.token}` }
         });
         if (!response.ok) throw new Error("Failed to fetch");
         const data = await response.json();
         setDbGlassTypes(data);
+        
+        // Auto-select the first glass type if none is selected
+        if (data.length > 0) {
+            setForm(prev => ({ ...prev, glassType: data[0].id }));
+        }
       } catch (err) {
-        toast.error("গ্লাসের তথ্য লোড করা সম্ভব হয়নি!");
+        toast.error("গ্লাসের তথ্য লোড করা সম্ভব হয়নি!");
       } finally {
         setIsLoadingGlasses(false);
       }
     };
     fetchGlassTypes();
-  }, [authUser.token]);
+  }, [authUser.token, API_URL]);
 
   const showAdd = ["progressive","bifocal_moon","bifocal_d"].includes(form.glassDesign);
   const entryKey = makeKey(form.sph, form.cyl, showAdd ? form.add : "0.00", form.glassDesign);
@@ -97,7 +105,7 @@ export default function StockEntry({ authUser, stock, setStock, txns, setTxns })
     };
 
     try {
-      const response = await fetch(`${API_BASE_URL}/api/Transactions`, {
+      const response = await fetch(`${API_URL}/api/Transactions`, {
         method: "POST",
         headers: { 
             "Content-Type": "application/json",
@@ -108,7 +116,7 @@ export default function StockEntry({ authUser, stock, setStock, txns, setTxns })
 
       if (!response.ok) throw new Error("সার্ভারে ডাটা সেভ হতে সমস্যা হয়েছে!");
 
-      toast.success("এন্ট্রি সফলভাবে সম্পন্ন হয়েছে!");
+      toast.success("এন্ট্রি সফলভাবে সম্পন্ন হয়েছে!");
       setStock(prev => {
         const gStock = prev[form.glassType] || {};
         return { ...prev, [form.glassType]: { ...gStock, [entryKey]: (gStock[entryKey] || 0) + (isIn ? qty : -qty) } };
