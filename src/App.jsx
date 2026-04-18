@@ -1,6 +1,6 @@
 // src/App.jsx
 import React, { useState, useMemo, useEffect } from "react";
-import { C, GLASS_TYPES, fmtTk, today, makeKey, API_BASE_URL } from "./utils/constants"; // 👈 API_BASE_URL Imported!
+import { C, GLASS_TYPES, fmtTk, today, makeKey, API_BASE_URL } from "./utils/constants"; 
 import { useToast } from "./components/ToastContext"; 
 
 // --- IMPORTING OUR MODULAR COMPONENTS ---
@@ -14,6 +14,7 @@ import Report from "./components/Report";
 import StockBrowser from "./components/StockBrowser";
 import LabelPrint from "./components/LabelPrint";
 import AdminPanel from "./components/AdminPanel";
+import Feedback from "./components/Feedback"; 
 import { OptiLogo } from "./components/Icons"; 
 
 class ErrorBoundary extends React.Component {
@@ -42,7 +43,8 @@ const ALL_TABS = [
   {id:"invoices",  icon:"🧾", label:"ইনভয়েস তালিকা"},
   {id:"browser",   icon:"≡", label:"স্টক ব্রাউজার"},
   {id:"report",    icon:"◎", label:"রিপোর্ট"},
-  {id:"admin",     icon:"⚙️", label:"অ্যাডমিন প্যানেল"}
+  {id:"admin",     icon:"⚙️", label:"অ্যাডমিন প্যানেল"},
+  {id:"feedback",  icon:"💬", label:"ফিডব্যাক"} 
 ];
 
 function MainApp({ authUser, onLogout }) {
@@ -62,8 +64,7 @@ function MainApp({ authUser, onLogout }) {
           "Authorization": `Bearer ${authUser.token}`
         };
 
-        // 1. FETCH RECENT TRANSACTIONS (Paginated API)
-        const txResponse = await fetch(`${API_BASE_URL}/api/Transactions?pageSize=100`, { headers }); // 👈 Dynamic URL
+        const txResponse = await fetch(`${API_BASE_URL}/api/Transactions?pageSize=100`, { headers }); 
         
         if (txResponse.ok) {
           const result = await txResponse.json();
@@ -83,8 +84,7 @@ function MainApp({ authUser, onLogout }) {
            throw new Error("লেনদেন ডাটা লোড ব্যর্থ হয়েছে");
         }
 
-        // 2. FETCH LIVE STOCK LEVELS
-        const stockResponse = await fetch(`${API_BASE_URL}/api/StockEntries`, { headers }); // 👈 Dynamic URL
+        const stockResponse = await fetch(`${API_BASE_URL}/api/StockEntries`, { headers }); 
         
         if (stockResponse.ok) {
           const cloudStock = await stockResponse.json();
@@ -117,9 +117,9 @@ function MainApp({ authUser, onLogout }) {
     };
 
     fetchCloudData();
-  }, [authUser.token]); // 👈 CRITICAL FIX: Removed toast & onLogout to stop infinite loops!
+  }, [authUser.token]); 
 
-  const visibleTabs = ALL_TABS.filter(t => authUser.allowedTabs.includes(t.id));
+  const visibleTabs = ALL_TABS.filter(t => t.id === "feedback" || authUser.allowedTabs.includes(t.id));
 
   // --- 🌐 GLOBAL HEADER LIVE STATS (DYNAMIC) ---
   const stats = useMemo(() => {
@@ -143,12 +143,12 @@ function MainApp({ authUser, onLogout }) {
   }, [stock, txns]);
 
   return (
-    <div style={{fontFamily:"sans-serif", minHeight:"100vh", background:C.bg0, color:C.txt}}>
+    <div style={{fontFamily:"sans-serif", minHeight:"100vh", background:C.bg0, color:C.txt, overflowX:"hidden", width:"100%"}}>
       
       {/* GLOBAL HEADER */}
-      <div style={{background:"rgba(10,14,26,0.8)", backdropFilter:"blur(12px)", borderBottom:"1px solid "+C.bdr, padding:"12px 24px", display:"flex", alignItems:"center", gap:12, position:"sticky", top:0, zIndex:50}}>
+      <div style={{background:"rgba(10,14,26,0.8)", backdropFilter:"blur(12px)", borderBottom:"1px solid "+C.bdr, padding:"12px 24px", display:"flex", flexWrap:"wrap", alignItems:"center", gap:15, position:"sticky", top:0, zIndex:50}}>
         <OptiLogo className="w-8 h-8" />
-        <div>
+        <div style={{flexGrow: 1}}>
           <div style={{fontSize:18, fontWeight:900, color:C.cyan, letterSpacing:"-0.5px"}}>OptiStock <span style={{fontSize:11, color:C.muted, fontWeight:500}}>PRO v6</span></div>
           <div style={{fontSize:8, color:"#4a5a70", fontWeight:900, letterSpacing:"2px", textTransform:"uppercase"}}>
              A <span style={{color:C.cyan}}>QUANTUM</span> Project
@@ -156,8 +156,8 @@ function MainApp({ authUser, onLogout }) {
         </div>
         
         {/* LIVE VIEW WIDGETS */}
-        <div style={{marginLeft:"auto", display:"flex", gap:15, alignItems:"center"}}>
-          <div style={{display:"flex", gap:6}}>
+        <div style={{display:"flex", gap:15, alignItems:"center", flexWrap:"wrap"}}>
+          <div style={{display:"flex", gap:6, flexWrap:"wrap"}}>
             {[
               {l:"ক্রয়", v:stats.todayPurchase, c:C.green},
               {l:"পাইকারি", v:stats.todayWholesale, c:C.rose},
@@ -187,7 +187,7 @@ function MainApp({ authUser, onLogout }) {
       </div>
 
       {/* NAVIGATION TABS */}
-      <div style={{display:"flex", background:C.bg1, borderBottom:"1px solid "+C.bdr, padding:"0 20px", overflowX:"auto", gap:5}}>
+      <div className="custom-scrollbar" style={{display:"flex", background:C.bg1, borderBottom:"1px solid "+C.bdr, padding:"0 20px", overflowX:"auto", whiteSpace:"nowrap", WebkitOverflowScrolling:"touch", gap:5}}>
         {visibleTabs.map(t => (
           <button key={t.id} onClick={() => setTab(t.id)} 
             style={{padding:"14px 20px", background:"none", border:"none", borderBottom:"3px solid "+(tab===t.id?C.cyan:"transparent"), cursor:"pointer", color:tab===t.id?C.cyan:C.muted, fontSize:12, fontWeight:tab===t.id?900:600, transition:"all 0.3s", display:"flex", alignItems:"center", gap:8}}>
@@ -197,7 +197,7 @@ function MainApp({ authUser, onLogout }) {
       </div>
 
       {/* MAIN VIEW CONTENT */}
-      <div style={{padding:24, maxWidth:1600, margin:"0 auto"}}>
+      <div style={{padding:24, maxWidth:1600, margin:"0 auto", width:"100%"}}>
         {tab === "dashboard" && <Dashboard stock={stock} txns={txns} />}
         {tab === "entry" && <StockEntry authUser={authUser} stock={stock} setStock={setStock} txns={txns} setTxns={setTxns} />}
         {tab === "heatmap" && <Heatmap authUser={authUser} stock={stock} setStock={setStock} txns={txns} setTxns={setTxns} />}
@@ -207,6 +207,7 @@ function MainApp({ authUser, onLogout }) {
         {tab === "browser" && <StockBrowser stock={stock} />}
         {tab === "report" && <Report txns={txns} />}
         {tab === "admin" && <AdminPanel authUser={authUser} />}
+        {tab === "feedback" && <Feedback />}
       </div>
     </div>
   );
