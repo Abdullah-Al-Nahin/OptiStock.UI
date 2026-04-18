@@ -12,6 +12,7 @@ export default function Feedback() {
   
   // Form State
   const [name, setName] = useState("");
+  const [email, setEmail] = useState(""); // 👈 NEW: Email state
   const [message, setMessage] = useState("");
   const [file, setFile] = useState(null);
   const [previewUrl, setPreviewUrl] = useState(null);
@@ -40,14 +41,13 @@ export default function Feedback() {
 
   // --- Submit Natively to the Iframe ---
   const handleSubmit = (e) => {
-    // We only prevent default if they forgot to type a name/message
-    if (!name.trim() || !message.trim()) {
+    // 👈 NEW: Added email to the validation check
+    if (!name.trim() || !email.trim() || !message.trim()) {
       e.preventDefault(); 
-      toast.warning("নাম এবং সমস্যার বিবরণ লিখতে হবে!");
+      toast.warning("নাম, ইমেইল এবং সমস্যার বিবরণ লিখতে হবে!");
       return;
     }
     
-    // Otherwise, we let the browser submit it natively so the image attaches!
     setLoading(true);
     setSubmitted(true);
   };
@@ -59,6 +59,7 @@ export default function Feedback() {
       setLoading(false);
       setSubmitted(false);
       setName("");
+      setEmail(""); // 👈 NEW: Reset email field
       setMessage("");
       removeFile();
     }
@@ -67,7 +68,7 @@ export default function Feedback() {
   return (
     <div className="animate-in fade-in zoom-in-95 duration-500 pb-10 flex flex-col items-center">
       
-      {/* 🚀 THE SECRET IFRAME: Catches the page reload so React stays smooth */}
+      {/* 🚀 THE SECRET IFRAME */}
       <iframe name="hidden_iframe" id="hidden_iframe" style={{ display: "none" }} onLoad={handleIframeLoad}></iframe>
 
       <div className="bg-[#0f1424] border border-[#1a2540] rounded-[2rem] p-10 shadow-2xl w-full max-w-2xl relative overflow-hidden">
@@ -84,7 +85,7 @@ export default function Feedback() {
           </p>
         </div>
 
-        {/* 🚀 NATIVE HTML FORM: This guarantees the file is attached */}
+        {/* 🚀 NATIVE HTML FORM */}
         <form 
           action="https://formsubmit.co/0quantumlabs@gmail.com" 
           method="POST" 
@@ -98,18 +99,35 @@ export default function Feedback() {
           <input type="hidden" name="_captcha" value="false" />
           <input type="hidden" name="_template" value="table" />
           
-          <div>
-            <label style={lbl}>আপনার নাম (Mandatory) <span className="text-[#f43f5e]">*</span></label>
-            <input 
-              type="text" 
-              name="Name" 
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              required 
-              style={inp} 
-              placeholder="Beta Tester Name" 
-              className="focus:border-[#0ea5e9] focus:ring-1 focus:ring-[#0ea5e9]/30"
-            />
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <label style={lbl}>আপনার নাম (Name) <span className="text-[#f43f5e]">*</span></label>
+              <input 
+                type="text" 
+                name="Name" 
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                required 
+                style={inp} 
+                placeholder="Beta Tester Name" 
+                className="focus:border-[#0ea5e9] focus:ring-1 focus:ring-[#0ea5e9]/30"
+              />
+            </div>
+
+            {/* 👈 NEW: Email Input Field */}
+            <div>
+              <label style={lbl}>আপনার ইমেইল (Email) <span className="text-[#f43f5e]">*</span></label>
+              <input 
+                type="email" 
+                name="email" 
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required 
+                style={inp} 
+                placeholder="tester@example.com" 
+                className="focus:border-[#0ea5e9] focus:ring-1 focus:ring-[#0ea5e9]/30"
+              />
+            </div>
           </div>
 
           <div>
@@ -140,7 +158,6 @@ export default function Feedback() {
               </div>
             ) : (
               <div className="bg-[#050810] border border-dashed border-[#1a2540] rounded-2xl p-6 text-center hover:border-[#0ea5e9]/50 transition-all group">
-                {/* Notice the htmlFor mapping to the hidden input below */}
                 <label htmlFor="file-upload" className="cursor-pointer flex flex-col items-center justify-center gap-3 w-full h-full">
                   <div className="w-12 h-12 rounded-full bg-[#0a0e1a] border border-[#1a2540] flex items-center justify-center group-hover:bg-[#0ea5e9]/10 group-hover:text-[#0ea5e9] transition-all text-xl">
                     📸
@@ -153,7 +170,6 @@ export default function Feedback() {
               </div>
             )}
             
-            {/* The physical file input must be present for the form to attach it */}
             <input 
               id="file-upload"
               type="file" 
