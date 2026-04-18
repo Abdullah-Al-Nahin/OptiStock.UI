@@ -1,9 +1,9 @@
 // src/components/AdminPanel.jsx
-import { C, API_BASE_URL } from "../utils/constants";
+import { C } from "../utils/constants";
 import React, { useState, useEffect } from "react";
 import { useToast } from "./ToastContext"; 
-import Skeleton from "./Skeleton"; // 👈 Integrated Skeletons
-import { OptiLogo } from "./Icons"; // 👈 Integrated Logo
+import Skeleton from "./Skeleton"; 
+import { OptiLogo } from "./Icons"; 
 
 const PERMISSIONS = [
   { id: "dashboard", label: "ড্যাশবোর্ড (Dashboard)", icon: "◈" },
@@ -26,10 +26,13 @@ export default function AdminPanel({ authUser }) {
   const [editPass, setEditPass] = useState({ username: null, val: "" });
   const [loading, setLoading] = useState(true);
 
+  // Safe default for VITE API URL
+  const API_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000";
+
   // --- 🌐 FETCH USERS ---
   const fetchUsers = async () => {
     try {
-      const response = await fetch(`${API_BASE_URL}/api/Admin/users`, {
+      const response = await fetch(`${API_URL}/api/Admin/users`, {
         headers: { "Authorization": `Bearer ${authUser.token}` }
       });
       
@@ -78,7 +81,8 @@ export default function AdminPanel({ authUser }) {
     };
 
     try {
-      const response = await fetch(`h${API_BASE_URL}/api/Admin/users`, {
+      // FIX: Removed the rogue "h" from the URL string
+      const response = await fetch(`${API_URL}/api/Admin/users`, {
         method: "POST",
         headers: { 
           "Content-Type": "application/json",
@@ -119,7 +123,7 @@ export default function AdminPanel({ authUser }) {
     
     if (window.confirm(`আপনি কি নিশ্চিত যে আপনি ${name}-এর অ্যাকাউন্ট মুছে ফেলতে চান?`)) {
       try {
-        const response = await fetch(`${API_BASE_URL}/api/Admin/users/${username}`, {
+        const response = await fetch(`${API_URL}/api/Admin/users/${username}`, {
           method: "DELETE",
           headers: { "Authorization": `Bearer ${authUser.token}` }
         });
@@ -143,7 +147,7 @@ export default function AdminPanel({ authUser }) {
     if (!editPass.val) return toast.warning("পাসওয়ার্ড ফাঁকা রাখা যাবে ক্যামনে?");
     
     try {
-      const response = await fetch(`${API_BASE_URL}/api/Admin/users/${username}/password`, {
+      const response = await fetch(`${API_URL}/api/Admin/users/${username}/password`, {
         method: "PUT",
         headers: { 
           "Content-Type": "application/json",
