@@ -26,7 +26,11 @@ export default function AdminPanel({ authUser }) {
   const [editPass, setEditPass] = useState({ username: null, val: "" });
   const [loading, setLoading] = useState(true);
 
-  // Safe default for VITE API URL
+  // 🚀 RESET DB STATE
+  const [showResetModal, setShowResetModal] = useState(false);
+  const [resetPass, setResetPass] = useState("");
+  const [isResetting, setIsResetting] = useState(false);
+
   const API_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000";
 
   // --- 🌐 FETCH USERS ---
@@ -81,7 +85,6 @@ export default function AdminPanel({ authUser }) {
     };
 
     try {
-      // FIX: Removed the rogue "h" from the URL string
       const response = await fetch(`${API_URL}/api/Admin/users`, {
         method: "POST",
         headers: { 
@@ -167,7 +170,43 @@ export default function AdminPanel({ authUser }) {
     }
   };
 
-  // 🚀 SHOW SKELETON LOADERS WHILE FETCHING
+  // --- 🌐 RESET DATABASE LOGIC ---
+  const handleResetDatabase = async (e) => {
+    e.preventDefault();
+    if (!resetPass) return toast.warning("অ্যাডমিন পাসওয়ার্ড দিন!");
+    
+    setIsResetting(true);
+    try {
+      const response = await fetch(`${API_URL}/api/Admin/reset-database`, {
+        method: "POST",
+        headers: { 
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${authUser.token}` 
+        },
+        body: JSON.stringify({ password: resetPass })
+      });
+
+      if (response.ok) {
+        toast.success("⚠️ ডাটাবেস সম্পূর্ণভাবে রিসেট হয়েছে!");
+        setShowResetModal(false);
+        setResetPass("");
+        
+        // Reload page after 1.5 seconds to wipe all local frontend state
+        setTimeout(() => {
+          window.location.reload();
+        }, 1500);
+
+      } else {
+        const errData = await response.json();
+        toast.error(errData.message || "পাসওয়ার্ড ভুল বা রিসেট ব্যর্থ হয়েছে!");
+      }
+    } catch (err) {
+      toast.error("সার্ভারের সাথে কানেক্ট করা যাচ্ছে না!");
+    } finally {
+      setIsResetting(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="animate-in fade-in zoom-in-95 duration-500 pb-10 flex flex-col gap-10">
@@ -175,8 +214,6 @@ export default function AdminPanel({ authUser }) {
           <div className="bg-[#0f1424] border border-[#1a2540] rounded-2xl p-6 shadow-2xl h-fit">
             <Skeleton className="h-6 w-64 mb-8 opacity-20 rounded" />
             <div className="grid grid-cols-2 gap-6 mb-6">
-              <Skeleton className="h-12 w-full opacity-10 rounded-xl" />
-              <Skeleton className="h-12 w-full opacity-10 rounded-xl" />
               <Skeleton className="h-12 w-full opacity-10 rounded-xl" />
               <Skeleton className="h-12 w-full opacity-10 rounded-xl" />
             </div>
@@ -195,54 +232,75 @@ export default function AdminPanel({ authUser }) {
   }
 
   return (
-    <div className="animate-in fade-in zoom-in-95 duration-500 pb-10 flex flex-col gap-10">
+    <div className="animate-in fade-in zoom-in-95 duration-500 pb-10 flex flex-col gap-10 relative">
       <div className="grid grid-cols-1 lg:grid-cols-[1fr_450px] gap-8">
         
-        {/* LEFT: FORM */}
-        <div className="bg-[#0f1424] border border-[#1a2540] rounded-2xl p-8 shadow-2xl h-fit">
-          <h2 className="text-lg font-black text-[#0ea5e9] mb-8 flex items-center gap-2"><span>⚙️</span> নতুন এমপ্লয়ি অ্যাকাউন্ট তৈরি করুন</h2>
+        {/* LEFT COLUMN: FORMS & DANGER ZONE */}
+        <div className="flex flex-col gap-8">
           
-          <form onSubmit={handleCreateUser}>
-            <div className="grid grid-cols-2 gap-6 mb-8">
-              <div>
-                <label style={lbl}>পুরো নাম</label>
-                <input type="text" value={form.name} onChange={e => setForm({...form, name: e.target.value})} style={inp} placeholder="Rahim Uddin" className="focus:border-[#0ea5e9] focus:ring-1 focus:ring-[#0ea5e9]/30" />
-              </div>
-              <div>
-                <label style={lbl}>ইউজারনেম</label>
-                <input type="text" value={form.username} onChange={e => setForm({...form, username: e.target.value.toLowerCase()})} style={inp} placeholder="rahim_01" className="focus:border-[#0ea5e9] focus:ring-1 focus:ring-[#0ea5e9]/30" />
-              </div>
-              <div>
-                <label style={lbl}>পাসওয়ার্ড</label>
-                <input type="text" value={form.password} onChange={e => setForm({...form, password: e.target.value})} style={inp} placeholder="••••••••" className="focus:border-[#0ea5e9] focus:ring-1 focus:ring-[#0ea5e9]/30" />
-              </div>
-              <div>
-                <label style={lbl}>রোল</label>
-                <select value={form.role} onChange={e => setForm({...form, role: e.target.value, allowedTabs: []})} style={inp} className="focus:border-[#0ea5e9] focus:ring-1 focus:ring-[#0ea5e9]/30 cursor-pointer">
-                  <option value="Staff">Staff (স্টাফ)</option>
-                  <option value="Admin">Admin (অ্যাডমিন)</option>
-                </select>
-              </div>
-            </div>
-
-            <div className={`transition-all duration-500 overflow-hidden ${form.role === "Admin" ? "max-h-0 opacity-0" : "max-h-[500px] opacity-100"}`}>
-              <div className="p-5 bg-[#050810] border border-[#1a2540] rounded-2xl mb-8">
-                <label style={lbl}>মডিউল পারমিশন</label>
-                <div className="grid grid-cols-2 gap-3 mt-4">
-                  {PERMISSIONS.map(p => (
-                    <label key={p.id} className={`flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-all active:scale-95 ${form.allowedTabs.includes(p.id) ? "bg-[#0ea5e9]/10 border-[#0ea5e9]/50 shadow-[0_0_10px_rgba(14,165,233,0.1)]" : "bg-[#0a0e1a] border-[#1a2540] hover:border-[#4a5a70]"}`}>
-                      <input type="checkbox" checked={form.allowedTabs.includes(p.id)} onChange={() => handleCheckbox(p.id)} className="w-4 h-4 accent-[#0ea5e9] cursor-pointer" />
-                      <span className={`text-xs font-black ${form.allowedTabs.includes(p.id) ? "text-[#0ea5e9]" : "text-[#94a3b8]"}`}>{p.icon} {p.label.split(' ')[0]}</span>
-                    </label>
-                  ))}
+          {/* USER CREATION FORM */}
+          <div className="bg-[#0f1424] border border-[#1a2540] rounded-2xl p-8 shadow-2xl">
+            <h2 className="text-lg font-black text-[#0ea5e9] mb-8 flex items-center gap-2"><span>⚙️</span> নতুন এমপ্লয়ি অ্যাকাউন্ট তৈরি করুন</h2>
+            
+            <form onSubmit={handleCreateUser}>
+              <div className="grid grid-cols-2 gap-6 mb-8">
+                <div>
+                  <label style={lbl}>পুরো নাম</label>
+                  <input type="text" value={form.name} onChange={e => setForm({...form, name: e.target.value})} style={inp} placeholder="Rahim Uddin" className="focus:border-[#0ea5e9] focus:ring-1 focus:ring-[#0ea5e9]/30" />
+                </div>
+                <div>
+                  <label style={lbl}>ইউজারনেম</label>
+                  <input type="text" value={form.username} onChange={e => setForm({...form, username: e.target.value.toLowerCase()})} style={inp} placeholder="rahim_01" className="focus:border-[#0ea5e9] focus:ring-1 focus:ring-[#0ea5e9]/30" />
+                </div>
+                <div>
+                  <label style={lbl}>পাসওয়ার্ড</label>
+                  <input type="text" value={form.password} onChange={e => setForm({...form, password: e.target.value})} style={inp} placeholder="••••••••" className="focus:border-[#0ea5e9] focus:ring-1 focus:ring-[#0ea5e9]/30" />
+                </div>
+                <div>
+                  <label style={lbl}>রোল</label>
+                  <select value={form.role} onChange={e => setForm({...form, role: e.target.value, allowedTabs: []})} style={inp} className="focus:border-[#0ea5e9] focus:ring-1 focus:ring-[#0ea5e9]/30 cursor-pointer">
+                    <option value="Staff">Staff (স্টাফ)</option>
+                    <option value="Admin">Admin (অ্যাডমিন)</option>
+                  </select>
                 </div>
               </div>
-            </div>
 
-            <button type="submit" className="w-full py-4 rounded-2xl font-black uppercase tracking-widest bg-gradient-to-r from-[#0284c7] to-[#0ea5e9] text-white shadow-xl active:scale-95 transition-all hover:brightness-110">
-              + অ্যাকাউন্ট তৈরি করুন
+              <div className={`transition-all duration-500 overflow-hidden ${form.role === "Admin" ? "max-h-0 opacity-0" : "max-h-[500px] opacity-100"}`}>
+                <div className="p-5 bg-[#050810] border border-[#1a2540] rounded-2xl mb-8">
+                  <label style={lbl}>মডিউল পারমিশন</label>
+                  <div className="grid grid-cols-2 gap-3 mt-4">
+                    {PERMISSIONS.map(p => (
+                      <label key={p.id} className={`flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-all active:scale-95 ${form.allowedTabs.includes(p.id) ? "bg-[#0ea5e9]/10 border-[#0ea5e9]/50 shadow-[0_0_10px_rgba(14,165,233,0.1)]" : "bg-[#0a0e1a] border-[#1a2540] hover:border-[#4a5a70]"}`}>
+                        <input type="checkbox" checked={form.allowedTabs.includes(p.id)} onChange={() => handleCheckbox(p.id)} className="w-4 h-4 accent-[#0ea5e9] cursor-pointer" />
+                        <span className={`text-xs font-black ${form.allowedTabs.includes(p.id) ? "text-[#0ea5e9]" : "text-[#94a3b8]"}`}>{p.icon} {p.label.split(' ')[0]}</span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              <button type="submit" className="w-full py-4 rounded-2xl font-black uppercase tracking-widest bg-gradient-to-r from-[#0284c7] to-[#0ea5e9] text-white shadow-xl active:scale-95 transition-all hover:brightness-110">
+                + অ্যাকাউন্ট তৈরি করুন
+              </button>
+            </form>
+          </div>
+
+          {/* DANGER ZONE - DB RESET */}
+          <div className="bg-[#0f1424] border border-[#dc2626]/30 rounded-2xl p-8 shadow-2xl relative overflow-hidden">
+            {/* Subtle red glow in background */}
+            <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-b from-[#dc2626]/5 to-transparent pointer-events-none"></div>
+            
+            <h2 className="text-lg font-black text-[#f87171] mb-2 flex items-center gap-2 relative z-10"><span>⚠️</span> ডেঞ্জার জোন (Danger Zone)</h2>
+            <p className="text-xs text-[#94a3b8] mb-6 relative z-10">স্টক এবং লেনদেনের সকল রেকর্ড মুছে ফেলতে নিচের অপশনটি ব্যবহার করুন। এই কাজ করার পর ডাটা আর ফেরত পাওয়া যাবে না।</p>
+            
+            <button 
+              onClick={() => setShowResetModal(true)} 
+              className="w-full py-4 rounded-xl border-2 border-[#dc2626] font-black uppercase tracking-widest text-[#f87171] bg-[#dc2626]/10 hover:bg-[#dc2626] hover:text-white shadow-lg active:scale-95 transition-all relative z-10"
+            >
+              ডাটাবেস রিসেট করুন (Reset Database)
             </button>
-          </form>
+          </div>
+
         </div>
 
         {/* RIGHT: LIST */}
@@ -272,7 +330,6 @@ export default function AdminPanel({ authUser }) {
                     <span className="text-[#4a5a70] font-bold">User:</span><span className="text-[#0ea5e9] font-black">@{u.username}</span>
                   </div>
                   
-                  {/* ✨ INLINE PASSWORD RESET UI */}
                   <div className="flex items-center justify-between text-[11px] font-mono">
                     <span className="text-[#4a5a70] font-bold">Pass:</span>
                     {editPass.username === u.username ? (
@@ -324,6 +381,56 @@ export default function AdminPanel({ authUser }) {
           A <span className="text-[#0ea5e9]">QUANTUM</span> Project
         </div>
       </div>
+
+      {/* 🛑 MODAL: PASSWORD CONFIRMATION FOR RESET 🛑 */}
+      {showResetModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in duration-200">
+          <div className="bg-[#0f1424] border border-[#dc2626]/50 rounded-3xl p-8 max-w-md w-full shadow-[0_0_50px_rgba(220,38,38,0.15)] animate-in zoom-in-95 duration-200">
+            
+            <div className="w-16 h-16 bg-[#dc2626]/10 rounded-full flex items-center justify-center mx-auto mb-6 border border-[#dc2626]/30">
+              <span className="text-3xl">⚠️</span>
+            </div>
+            
+            <h3 className="text-xl font-black text-[#f87171] text-center mb-2">সতর্কতা!</h3>
+            <p className="text-[13px] text-[#94a3b8] text-center mb-8 leading-relaxed">
+              আপনি পুরো সিস্টেমের স্টক এবং ট্রানজেকশন মুছে ফেলার নির্দেশ দিচ্ছেন। 
+              নিশ্চিত করতে <span className="text-[#e8f4ff] font-bold">অ্যাডমিন পাসওয়ার্ড</span> প্রদান করুন।
+            </p>
+
+            <form onSubmit={handleResetDatabase}>
+              <div className="mb-6">
+                <label style={lbl}>পাসওয়ার্ড (Password)</label>
+                <input 
+                  type="password" 
+                  value={resetPass} 
+                  onChange={(e) => setResetPass(e.target.value)} 
+                  autoFocus
+                  placeholder="অ্যাডমিন পাসওয়ার্ড টাইপ করুন..."
+                  className="w-full padding-[14px] rounded-xl border border-[#dc2626]/50 bg-[#050810] text-[#dde6f0] p-3 text-sm outline-none focus:border-[#dc2626] focus:ring-2 focus:ring-[#dc2626]/20 transition-all text-center tracking-widest font-mono"
+                />
+              </div>
+
+              <div className="flex gap-4">
+                <button 
+                  type="button" 
+                  onClick={() => { setShowResetModal(false); setResetPass(""); }} 
+                  className="flex-1 py-3 rounded-xl font-bold uppercase tracking-widest bg-[#1a2540] text-[#c8dff0] hover:bg-[#2a3a5a] transition-all text-xs"
+                >
+                  বাতিল করুন
+                </button>
+                <button 
+                  type="submit" 
+                  disabled={isResetting}
+                  className="flex-1 py-3 rounded-xl font-black uppercase tracking-widest bg-[#dc2626] text-white hover:bg-[#b91c1c] active:scale-95 transition-all text-xs disabled:opacity-50 flex justify-center items-center gap-2"
+                >
+                  {isResetting ? "মুছে ফেলা হচ্ছে..." : "কনফার্ম (Confirm)"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }

@@ -98,8 +98,13 @@ function MainApp({ authUser, onLogout }) {
             const cylStr = formatPower(entry.cyl);
             const addStr = entry.add === 0 ? "0.00" : entry.add.toFixed(2);
             
-            const inferredDesign = entry.add > 0 ? "progressive" : "single_vision";
-            const key = makeKey(sphStr, cylStr, addStr, inferredDesign);
+            // 🚀 THE FIX: Read design directly from DB to preserve "Moon Bifocal" etc on refresh!
+            const designStr = entry.design || entry.glassDesign || (entry.add > 0 ? "progressive" : "single_vision");
+            const baseKey = makeKey(sphStr, cylStr, addStr, designStr);
+            
+            // Append Axis correctly 
+            const hasCyl = entry.cyl !== 0;
+            const key = hasCyl ? `${baseKey}_ax${entry.axis || 0}` : baseKey;
             
             newStockState[entry.glassTypeId][key] = entry.qty;
           });

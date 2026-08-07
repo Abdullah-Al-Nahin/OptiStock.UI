@@ -1,8 +1,8 @@
 // src/components/StockBrowser.jsx
 import React, { useState, useMemo } from "react";
 import { C, GLASS_TYPES, parseKey, genBC } from "../utils/constants";
-import Skeleton from "./Skeleton"; // 👈 Integrated Skeletons
-import { OptiLogo } from "./Icons"; // 👈 Integrated Logo
+import Skeleton from "./Skeleton"; 
+import { OptiLogo } from "./Icons"; 
 
 const inpStyle = { padding: "10px 14px", borderRadius: 10, border: "1px solid #1a2540", background: "#050810", color: "#dde6f0", fontSize: 13, outline: "none", width: "100%" };
 
@@ -10,10 +10,11 @@ export default function StockBrowser({ stock }) {
   const [filterGlass, setFilterGlass] = useState("all");
   const [filterSph, setFilterSph] = useState("");
   const [filterCyl, setFilterCyl] = useState("");
+  const [filterAxis, setFilterAxis] = useState("");
   const [inStockOnly, setInStockOnly] = useState(true);
 
   const resetFilters = () => {
-    setFilterGlass("all"); setFilterSph(""); setFilterCyl(""); setInStockOnly(true);
+    setFilterGlass("all"); setFilterSph(""); setFilterCyl(""); setFilterAxis(""); setInStockOnly(true);
   };
 
   const tableData = useMemo(() => {
@@ -27,25 +28,40 @@ export default function StockBrowser({ stock }) {
       Object.entries(gStock).forEach(([key, qty]) => {
         if (inStockOnly && qty <= 0) return;
         
-        const { sph, cyl, add, design } = parseKey(key);
+        const parsed = parseKey(key);
+        const sph = parsed.sph;
+        const cyl = parsed.cyl;
+        const add = parsed.add;
+        let design = parsed.design;
+
+        // 🚀 ROBUST AXIS EXTRACTOR AND DESIGN CLEANER
+        let axisVal = 0;
+        const axMatch = key.match(/(?:_)?ax(\d+)/i);
+        if (axMatch) {
+          axisVal = parseInt(axMatch[1], 10);
+        }
         
-        // Match partial strings for fast typing (e.g. typing "-1" matches "-1.50")
+        // Strip out the AX90/AX70 from the design name so the table looks clean
+        const cleanDesign = design.replace(/(?:_)?ax\d+/i, '').replace(/_/g, " ").trim().toUpperCase();
+        
+        // Match partial strings for fast typing
         if (filterSph && !sph.includes(filterSph)) return;
         if (filterCyl && !cyl.includes(filterCyl)) return;
+        if (filterAxis && !axisVal.toString().includes(filterAxis)) return;
 
         list.push({
           id: key + g.id,
           glassName: g.name, tag: g.tag, accent: g.accent,
-          sph, cyl, add, qty,
+          sph, cyl, add, axis: axisVal, qty,
           barcode: genBC(g.tag, sph, cyl, add, design),
-          design: design.replace("_", " ").toUpperCase()
+          design: cleanDesign
         });
       });
     });
 
     // Sort by Quantity (Highest first), then alphabetically by power
     return list.sort((a, b) => b.qty - a.qty || a.sph.localeCompare(b.sph));
-  }, [stock, filterGlass, filterSph, filterCyl, inStockOnly]);
+  }, [stock, filterGlass, filterSph, filterCyl, filterAxis, inStockOnly]);
 
   // 🚀 SHOW SKELETON LOADERS WHILE DATA IS LOADING
   if (!stock || Object.keys(stock).length === 0) {
@@ -70,8 +86,8 @@ export default function StockBrowser({ stock }) {
       <div className="bg-[#0f1424] border border-[#1a2540] rounded-2xl p-6 shadow-xl">
         <h3 className="text-xs font-black text-[#4a5a70] uppercase tracking-widest mb-5 flex items-center gap-2"><span>🔍</span> ফিল্টার ও অনুসন্ধান</h3>
         
-        <div className="flex flex-wrap items-end gap-5">
-          <div className="w-56">
+        <div className="flex flex-wrap items-end gap-4">
+          <div className="w-48">
             <label className="block text-[10px] text-[#4a5a70] font-black mb-2 uppercase tracking-widest ml-1">গ্লাস টাইপ</label>
             <select value={filterGlass} onChange={e => setFilterGlass(e.target.value)} style={inpStyle} className="transition-all focus:border-[#0ea5e9] focus:ring-1 focus:ring-[#0ea5e9]/30">
               <option value="all">সব টাইপ</option>
@@ -79,22 +95,27 @@ export default function StockBrowser({ stock }) {
             </select>
           </div>
 
-          <div className="w-32">
+          <div className="w-28">
             <label className="block text-[10px] text-[#f472b6] font-black mb-2 uppercase tracking-widest ml-1">SPH</label>
             <input type="text" placeholder="-1.50" value={filterSph} onChange={e => setFilterSph(e.target.value)} style={inpStyle} className="transition-all focus:border-[#f472b6] focus:ring-1 focus:ring-[#f472b6]/30 font-mono" />
           </div>
 
-          <div className="w-32">
+          <div className="w-28">
             <label className="block text-[10px] text-[#a3e635] font-black mb-2 uppercase tracking-widest ml-1">CYL</label>
             <input type="text" placeholder="-0.75" value={filterCyl} onChange={e => setFilterCyl(e.target.value)} style={inpStyle} className="transition-all focus:border-[#a3e635] focus:ring-1 focus:ring-[#a3e635]/30 font-mono" />
           </div>
 
-          <label className="flex items-center gap-3 cursor-pointer mb-3 mr-4 p-2 rounded-lg hover:bg-[#1a2540]/30 transition-colors">
+          <div className="w-28">
+            <label className="block text-[10px] text-[#38bdf8] font-black mb-2 uppercase tracking-widest ml-1">AXIS</label>
+            <input type="text" placeholder="90" value={filterAxis} onChange={e => setFilterAxis(e.target.value)} style={inpStyle} className="transition-all focus:border-[#38bdf8] focus:ring-1 focus:ring-[#38bdf8]/30 font-mono" />
+          </div>
+
+          <label className="flex items-center gap-3 cursor-pointer mb-3 mr-2 p-2 rounded-lg hover:bg-[#1a2540]/30 transition-colors">
             <input type="checkbox" checked={inStockOnly} onChange={e => setInStockOnly(e.target.checked)} className="w-4 h-4 accent-[#0ea5e9] bg-[#050810] border-[#1a2540] rounded cursor-pointer" />
             <span className="text-xs font-black text-[#dde6f0] uppercase tracking-widest">শুধু স্টক আছে</span>
           </label>
 
-          <div className="bg-[#1a3a5c]/30 border border-[#0ea5e9]/30 text-[#0ea5e9] px-5 py-2.5 rounded-xl font-black text-sm flex items-center mb-0.5 shadow-lg">
+          <div className="bg-[#1a3a5c]/30 border border-[#0ea5e9]/30 text-[#0ea5e9] px-4 py-2.5 rounded-xl font-black text-sm flex items-center mb-0.5 shadow-lg">
             {tableData.length} আইটেম
           </div>
 
@@ -115,6 +136,7 @@ export default function StockBrowser({ stock }) {
                 <th className="p-5 text-[11px] font-black text-[#22d3ee] uppercase tracking-widest">গ্লাস</th>
                 <th className="p-5 text-[11px] font-black text-[#22d3ee] uppercase tracking-widest text-center">SPH</th>
                 <th className="p-5 text-[11px] font-black text-[#22d3ee] uppercase tracking-widest text-center">CYL</th>
+                <th className="p-5 text-[11px] font-black text-[#22d3ee] uppercase tracking-widest text-center">AXIS</th>
                 <th className="p-5 text-[11px] font-black text-[#22d3ee] uppercase tracking-widest text-center">ADD</th>
                 <th className="p-5 text-[11px] font-black text-[#22d3ee] uppercase tracking-widest">বারকোড</th>
                 <th className="p-5 text-[11px] font-black text-[#22d3ee] uppercase tracking-widest text-center">স্টক</th>
@@ -124,7 +146,7 @@ export default function StockBrowser({ stock }) {
             <tbody>
               {tableData.length === 0 ? (
                 <tr>
-                   <td colSpan="7" className="p-20 text-center">
+                   <td colSpan="8" className="p-20 text-center">
                       <div className="text-4xl mb-4 opacity-20">🔎</div>
                       <div className="text-[#c8dff0] font-black text-lg mb-1">কোনো লেন্স পাওয়া যায়নি</div>
                       <div className="text-xs text-[#4a5a70] italic">ফিল্টার পরিবর্তন করে আবার চেষ্টা করুন</div>
@@ -142,6 +164,9 @@ export default function StockBrowser({ stock }) {
                     </td>
                     <td className="p-5 text-center font-mono font-black text-[#f472b6] text-base">{item.sph}</td>
                     <td className="p-5 text-center font-mono font-black text-[#a3e635] text-base">{item.cyl}</td>
+                    <td className="p-5 text-center font-mono font-black text-[#38bdf8] text-base">
+                      {item.cyl === "0.00" || item.cyl === "0" ? "—" : `${item.axis}°`}
+                    </td>
                     <td className="p-5 text-center font-mono font-black text-[#4a5568] text-base">{item.add === "0.00" || item.add === "0" ? "N/A" : <span className="text-[#c084fc]">{item.add}</span>}</td>
                     <td className="p-5">
                       <span className="bg-[#064e3b]/40 border border-[#059669]/50 text-[#34d399] px-3 py-1.5 rounded-lg text-[11px] font-mono font-bold tracking-widest shadow-inner">
@@ -166,7 +191,6 @@ export default function StockBrowser({ stock }) {
         </div>
       </div>
 
-      {/* --- STANDARDIZED A QUANTUM PROJECT BRANDING --- */}
       <div className="pt-10 border-t border-[#1a2540] flex items-center justify-center gap-4 opacity-40">
         <OptiLogo className="w-6 h-6 grayscale" />
         <div className="text-[10px] font-black text-[#4a5568] uppercase tracking-[0.4em]">

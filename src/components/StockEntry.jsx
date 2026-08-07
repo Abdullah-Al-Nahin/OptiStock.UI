@@ -1,8 +1,8 @@
 // src/components/StockEntry.jsx
 import React, { useState, useMemo, useEffect } from "react";
 import { 
-  IN_SUB, OUT_SUB, SM, SPH_LIST, CYL_LIST, ADD_LIST, 
-  C, makeKey, genBC, fmtTk, today, buildUPCEBars
+  IN_SUB, OUT_SUB, SM, SPH_LIST, CYL_LIST, 
+  C, makeKey, genBC, fmtTk, buildUPCEBars
 } from "../utils/constants";
 import { useToast } from "./ToastContext"; 
 import Skeleton from "./Skeleton"; 
@@ -39,12 +39,11 @@ const DESIGNS = [
 
 export default function StockEntry({ authUser, stock, setStock, txns, setTxns }) {
   const toast = useToast();
-  // Safe default for VITE API URL
   const API_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000";
 
   const [form, setForm] = useState({
     direction: "in", subtype: "purchase", glassType: "", glassDesign: "single_vision",
-    sph: "-1.50", cyl: "0.00", add: "0.00", qty: "1", unitPrice: "", note: "", customerName: "" 
+    sph: "-1.50", cyl: "0.00", axis: "90", add: "0.00", qty: "1", unitPrice: "", note: "", customerName: "" 
   });
 
   const [dbGlassTypes, setDbGlassTypes] = useState([]);
@@ -60,7 +59,6 @@ export default function StockEntry({ authUser, stock, setStock, txns, setTxns })
         const data = await response.json();
         setDbGlassTypes(data);
         
-        // Auto-select the first valid glass type if none is selected
         const targetCoatings = ["হোয়াইট", "ব্লু কাট", "ফটোক্রোমিক", "এমসি"];
         const validData = data.filter(g => targetCoatings.includes(g.name));
         if (validData.length > 0) {
@@ -73,10 +71,16 @@ export default function StockEntry({ authUser, stock, setStock, txns, setTxns })
       }
     };
     fetchGlassTypes();
-  }, [authUser.token, API_URL]);
+  }, [authUser.token, API_URL, toast]);
 
   const showAdd = ["progressive","bifocal_moon","bifocal_d"].includes(form.glassDesign);
-  const entryKey = makeKey(form.sph, form.cyl, showAdd ? form.add : "0.00", form.glassDesign);
+  
+  // 🚀 ROBUST AXIS & CYL PARSING
+  const hasCylVal = form.cyl && parseFloat(form.cyl) !== 0;
+  const currentAxis = hasCylVal ? (parseInt(form.axis, 10) || 0) : 0;
+  const baseKey = makeKey(form.sph, form.cyl, showAdd ? form.add : "0.00", form.glassDesign);
+  const entryKey = `${baseKey}_ax${currentAxis}`;
+  
   const curStock = stock[form.glassType]?.[entryKey] || 0;
   const unitPriceNum = parseFloat(form.unitPrice) || 0;
   const totalPrice = unitPriceNum * parseInt(form.qty || 1);
@@ -98,8 +102,10 @@ export default function StockEntry({ authUser, stock, setStock, txns, setTxns })
       subtype: form.subtype,
       glassTypeId: form.glassType, 
       glassName: gt.name,
+      design: form.glassDesign, // 🚀 THIS SENDS IT TO THE DATABASE
       sph: parseFloat(form.sph),
       cyl: parseFloat(form.cyl),
+      axis: hasCylVal ? currentAxis : null,
       add: showAdd ? form.add : "0.00",
       qty: qty,
       unitPrice: unitPriceNum,
@@ -119,7 +125,12 @@ export default function StockEntry({ authUser, stock, setStock, txns, setTxns })
         body: JSON.stringify(newTransaction)
       });
 
-      if (!response.ok) throw new Error("সার্ভারে ডাটা সেভ হতে সমস্যা হয়েছে!");
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        console.error("Backend Error:", errorData); // Logs full error to browser console
+        // This will pop up the exact technical error from C# so we can see what's wrong
+        throw new Error(errorData.error || errorData.message || "সার্ভারে ডাটা সেভ হতে সমস্যা হয়েছে!");
+      }
 
       toast.success("এন্ট্রি সফলভাবে সম্পন্ন হয়েছে!");
       setStock(prev => {
@@ -145,7 +156,6 @@ export default function StockEntry({ authUser, stock, setStock, txns, setTxns })
   return (
     <div className="animate-in fade-in duration-500 space-y-10 pb-10">
       
-      {/* MAIN TWO-COLUMN GRID */}
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
         
         {/* LEFT: FORM SECTION */}
@@ -188,7 +198,6 @@ export default function StockEntry({ authUser, stock, setStock, txns, setTxns })
           <div className="bg-[#050810] p-4 rounded-xl border border-[#1a2540] mb-6">
             <h3 className="text-[10px] font-black text-[#22d3ee] uppercase tracking-widest mb-4">◈ লেন্স টাইপ নির্বাচন</h3>
             
-            {/* COATINGS SECTION */}
             <div style={lbl}>কোটিং</div>
             {isLoadingGlasses ? (
               <div className="grid grid-cols-2 gap-3 mb-5">
@@ -212,7 +221,6 @@ export default function StockEntry({ authUser, stock, setStock, txns, setTxns })
               </div>
             )}
 
-            {/* LENS DESIGN SECTION */}
             <div style={lbl}>লেন্স ডিজাইন</div>
             <div className="grid grid-cols-3 gap-3 mb-5">
               {DESIGNS.map(d => (
@@ -224,7 +232,6 @@ export default function StockEntry({ authUser, stock, setStock, txns, setTxns })
               ))}
             </div>
 
-            {/* SELECTED LENS SUMMARY BAR */}
             <div className="bg-[#0a0e1a] p-3 rounded-lg border border-[#1a2540] flex items-center gap-3">
                 <span className="text-[10px] text-[#4a5a70] uppercase tracking-wider">নির্বাচিত লেন্স</span>
                 <div style={{width:10, height:10, borderRadius:"50%", background: dbGlassTypes.find(g => g.id === form.glassType)?.accentColor || "#fff"}} />
@@ -236,17 +243,38 @@ export default function StockEntry({ authUser, stock, setStock, txns, setTxns })
 
           <div className="bg-[#050810] p-4 rounded-xl border border-[#1a2540] mb-6">
             <h3 className="text-[10px] font-black text-[#22d3ee] uppercase tracking-widest mb-4">◈ প্রেসক্রিপশন পাওয়ার</h3>
-            <div className="grid grid-cols-2 gap-4 mb-4">
-              <div><label style={{...lbl, color:"#f472b6"}}>SPH (SPHERE)</label>
+            
+            <div className="flex flex-wrap gap-4 mb-4">
+              <div className="flex-1 min-w-[130px]">
+                <label style={{...lbl, color:"#f472b6"}}>SPH (SPHERE)</label>
                 <select value={form.sph} onChange={e => setForm({...form, sph: e.target.value})} style={inp}>
                   <optgroup label="── মাইনাস ──">{SPH_LIST.filter(p=>p.value<0).reverse().map(p=><option key={p.label} value={p.label}>{p.label}</option>)}</optgroup>
                   <optgroup label="── প্লাস ──">{SPH_LIST.filter(p=>p.value>=0).map(p=><option key={p.label} value={p.label}>{p.label}</option>)}</optgroup>
                 </select>
               </div>
-              <div><label style={{...lbl, color:"#a3e635"}}>CYL (CYLINDER)</label>
-                <select value={form.cyl} onChange={e => setForm({...form, cyl: e.target.value})} style={inp}>{CYL_LIST.map(c => <option key={c.value} value={c.value===0?"0.00":c.value>0?"+"+c.value.toFixed(2):c.value.toFixed(2)}>{c.label}</option>)}</select>
+              
+              <div className="flex-1 min-w-[130px]">
+                <label style={{...lbl, color:"#a3e635"}}>CYL (CYLINDER)</label>
+                <select value={form.cyl} onChange={e => setForm({...form, cyl: e.target.value})} style={inp}>
+                  {CYL_LIST.map(c => <option key={c.value} value={c.value===0?"0.00":c.value>0?"+"+c.value.toFixed(2):c.value.toFixed(2)}>{c.label}</option>)}
+                </select>
+              </div>
+              
+              <div className="flex-1 min-w-[130px]">
+                <label style={{...lbl, color:"#38bdf8"}}>AXIS (ডিগ্রী 0-180)</label>
+                <input 
+                  type="number" 
+                  min="0" 
+                  max="180" 
+                  placeholder="90" 
+                  value={form.axis} 
+                  onChange={e => setForm({...form, axis: e.target.value})} 
+                  style={{...inp, opacity: !hasCylVal ? 0.4 : 1}} 
+                  disabled={!hasCylVal}
+                />
               </div>
             </div>
+
             <div className="bg-[#0a0e1a] p-3 rounded-lg border border-[#1a2540] text-center">
                <div className="text-[8px] text-[#4a5a70] uppercase mb-2">বারকোড প্রিভিউ</div>
                <BarcodeStrip code={genBC(dbGlassTypes.find(g=>g.id===form.glassType)?.tag||"XX", form.sph, form.cyl, showAdd ? form.add : "0.00", form.glassDesign)} height={50} />
@@ -281,7 +309,7 @@ export default function StockEntry({ authUser, stock, setStock, txns, setTxns })
                         <span style={{background:sm.color+"22", color:sm.color}} className="text-[10px] font-black px-2 py-0.5 rounded-md border border-current">{sm.label}</span>
                         <span className="text-xs font-bold text-[#dde6f0]">{tx.glassName}</span>
                       </div>
-                      <div className="text-[9px] font-mono text-[#4a5568]">◫ {tx.barcode}</div>
+                      <div className="text-[9px] font-mono text-[#4a5568]">◫ {tx.barcode} {tx.axis !== null && tx.axis !== undefined ? `| Axis: ${tx.axis}°` : ""}</div>
                     </div>
                     <div className="text-right">
                       <div className={`font-mono font-black text-lg ${tx.direction === "in" ? "text-[#4ade80]" : "text-[#f87171]"}`}>
@@ -296,7 +324,6 @@ export default function StockEntry({ authUser, stock, setStock, txns, setTxns })
         </div>
       </div>
 
-      {/* --- STANDARDIZED A QUANTUM PROJECT BRANDING --- */}
       <div className="pt-10 border-t border-[#1a2540] flex items-center justify-center gap-4 opacity-40">
         <OptiLogo className="w-6 h-6 grayscale" />
         <div className="text-[10px] font-black text-[#4a5568] uppercase tracking-[0.4em]">
