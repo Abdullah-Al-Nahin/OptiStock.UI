@@ -7,6 +7,7 @@ import { useToast } from "./components/ToastContext";
 import Login from "./components/Login"; 
 import Dashboard from "./components/Dashboard";
 import StockEntry from "./components/StockEntry";
+import PreOrderManager from "./components/PreOrderManager"; // 🚀 NEW PRE-ORDER COMPONENT
 import Heatmap from "./components/Heatmap";
 import Scanner from "./components/Scanner";
 import InvoiceList from "./components/InvoiceList";
@@ -37,6 +38,7 @@ class ErrorBoundary extends React.Component {
 const ALL_TABS = [
   {id:"dashboard", icon:"◈", label:"ড্যাশবোর্ড"},
   {id:"entry",     icon:"⊕", label:"স্টক এন্ট্রি"},
+  {id:"preorder",  icon:"📦", label:"প্রি-অর্ডার"}, // 🚀 NEW TAB ADDED
   {id:"heatmap",   icon:"⊞", label:"হিটম্যাপ"},
   {id:"scanner",   icon:"◫", label:"বারকোড স্ক্যানার"},
   {id:"print",     icon:"🏷️", label:"লেবেল প্রিন্ট"},
@@ -124,7 +126,8 @@ function MainApp({ authUser, onLogout }) {
     fetchCloudData();
   }, [authUser.token]); 
 
-  const visibleTabs = ALL_TABS.filter(t => t.id === "feedback" || authUser.allowedTabs.includes(t.id));
+  // Make sure to allow preorder tab for admins or if explicitly allowed
+  const visibleTabs = ALL_TABS.filter(t => t.id === "feedback" || authUser.allowedTabs.includes(t.id) || (t.id === "preorder" && authUser.role === "Admin"));
 
   // --- 🌐 GLOBAL HEADER LIVE STATS (DYNAMIC) ---
   const stats = useMemo(() => {
@@ -205,12 +208,16 @@ function MainApp({ authUser, onLogout }) {
       <div style={{padding:24, maxWidth:1600, margin:"0 auto", width:"100%"}}>
         {tab === "dashboard" && <Dashboard stock={stock} txns={txns} />}
         {tab === "entry" && <StockEntry authUser={authUser} stock={stock} setStock={setStock} txns={txns} setTxns={setTxns} />}
+        
+        {/* 🚀 RENDER PRE-ORDER MANAGER */}
+        {tab === "preorder" && <PreOrderManager authUser={authUser} />}
+        
         {tab === "heatmap" && <Heatmap authUser={authUser} stock={stock} setStock={setStock} txns={txns} setTxns={setTxns} />}
         {tab === "scanner" && <Scanner authUser={authUser} stock={stock} setStock={setStock} txns={txns} setTxns={setTxns} />}
         {tab === "print" && <LabelPrint stock={stock} />}
         {tab === "invoices" && <InvoiceList txns={txns} />}
         
-        {/* 🚀 THE FIX: Passing setStock and authUser to StockBrowser! */}
+        {/* Passing setStock and authUser to StockBrowser! */}
         {tab === "browser" && <StockBrowser stock={stock} setStock={setStock} authUser={authUser} />}
         
         {tab === "report" && <Report txns={txns} />}

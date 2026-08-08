@@ -35,7 +35,7 @@ const DESIGNS = [
 const HM_SPHS = SPH_LIST.map(item => item.label);
 const HM_CYLS = CYL_LIST.map(item => item.value === 0 ? "0.00" : (item.value > 0 ? "+" : "") + item.value.toFixed(2));
 
-// 🚀 EVERY 10 DEGREES FROM 0 TO 180
+// EVERY 10 DEGREES FROM 0 TO 180
 const AXIS_OPTIONS = Array.from({ length: 19 }, (_, i) => i * 10);
 
 export default function Heatmap({ authUser, stock, setStock, txns, setTxns }) {
@@ -108,37 +108,53 @@ export default function Heatmap({ authUser, stock, setStock, txns, setTxns }) {
     return { qty: foundQty, stockKey: foundKey || fallbackKey };
   };
 
-  // SMART AUTO-SCROLL
+  // 🚀 BULLETPROOF X/Y AUTO-SCROLL USING VIEWPORT COORDINATES
   const hmSelRef = useRef(hmSel);
   useEffect(() => { hmSelRef.current = hmSel; }, [hmSel]);
 
   useEffect(() => {
-    let targetIndex = -1;
+    let targetSphIdx = -1;
+    let targetCylIdx = -1;
     const currentSel = hmSelRef.current;
 
     if (currentSel) {
       const { qty, stockKey } = getStockDetails(currentSel.sph, currentSel.cyl);
       setHmSel({ ...currentSel, qty, stockKey });
-      targetIndex = HM_SPHS.findIndex(s => parseFloat(s) === parseFloat(currentSel.sph));
+      targetSphIdx = HM_SPHS.findIndex(s => parseFloat(s) === parseFloat(currentSel.sph));
+      targetCylIdx = HM_CYLS.findIndex(c => parseFloat(c) === parseFloat(currentSel.cyl));
     } else {
       for (let i = 0; i < HM_SPHS.length; i++) {
         const sph = HM_SPHS[i];
-        for (const cyl of HM_CYLS) {
+        for (let j = 0; j < HM_CYLS.length; j++) {
+          const cyl = HM_CYLS[j];
           const { qty } = getStockDetails(sph, cyl);
           if (qty > 0) {
-            targetIndex = i;
+            targetSphIdx = i;
+            targetCylIdx = j;
             break;
           }
         }
-        if (targetIndex !== -1) break;
+        if (targetSphIdx !== -1) break;
       }
     }
 
-    if (targetIndex !== -1) {
+    if (targetSphIdx !== -1 && targetCylIdx !== -1) {
       setTimeout(() => {
-        const rowEl = document.getElementById(`sph-row-${targetIndex}`);
-        if (rowEl && gridRef.current) {
-          gridRef.current.scrollTo({ top: rowEl.offsetTop - 60, behavior: 'smooth' });
+        const cellEl = document.getElementById(`cell-${targetSphIdx}-${targetCylIdx}`);
+        if (cellEl && gridRef.current) {
+          // Get exact screen positions of both the scroll container and the target cell
+          const gridRect = gridRef.current.getBoundingClientRect();
+          const cellRect = cellEl.getBoundingClientRect();
+
+          // Calculate exact pixels needed to bring cell into view
+          const targetTop = gridRef.current.scrollTop + (cellRect.top - gridRect.top) - 80;
+          const targetLeft = gridRef.current.scrollLeft + (cellRect.left - gridRect.left) - 120; // 120px gives breathing room for the sticky SPH column
+
+          gridRef.current.scrollTo({ 
+            top: targetTop, 
+            left: targetLeft, 
+            behavior: 'smooth' 
+          });
         }
       }, 150);
     }
@@ -266,7 +282,7 @@ export default function Heatmap({ authUser, stock, setStock, txns, setTxns }) {
       {/* 2. SPH x CYL HEATMAP GRID */}
       <div className="bg-[#0f1424] border border-[#1a2540] rounded-2xl p-6 shadow-2xl relative overflow-hidden">
         
-        {/* 🚀 RESPONSIVE 10-DEGREE AXIS SCROLLER */}
+        {/* RESPONSIVE 10-DEGREE AXIS SCROLLER */}
         <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-4 mb-6">
           <div className="text-sm font-black text-[#e8f4ff] flex items-center gap-2 whitespace-nowrap">
             {activeG.name} <span className="text-[#4a5568]">·</span> <span className="text-[#22d3ee]">{DESIGNS.find(d=>d.id===hmDesign)?.name}</span>
@@ -301,17 +317,20 @@ export default function Heatmap({ authUser, stock, setStock, txns, setTxns }) {
               ))}
             </div>
 
-            {HM_SPHS.map((sph, index) => (
-              <div key={sph} id={`sph-row-${index}`} className="flex items-center mb-[2px]">
+            {HM_SPHS.map((sph, sphIndex) => (
+              <div key={sph} id={`sph-row-${sphIndex}`} className="flex items-center mb-[2px]">
                 <div className="w-[60px] h-[26px] sticky left-0 z-10 bg-[#0f1424] text-[10px] font-mono font-black text-right pr-3 flex-shrink-0 flex items-center justify-end border-r border-[#1a2540]" style={{color:parseFloat(sph)<0?"#f472b6":"#60a5fa"}}>
                   {sph}
                 </div>
-                {HM_CYLS.map(cyl => {
+                {HM_CYLS.map((cyl, cylIndex) => {
                   const { qty: q, stockKey } = getStockDetails(sph, cyl);
                   const selKey = sph+"|"+cyl;
                   const isSel = hmSel?.key === selKey;
                   return (
-                    <button key={cyl} onClick={() => setHmSel(isSel ? null : {key:selKey, sph, cyl, glassId:hmGlass, qty:q, barcode:genBC(activeG.tag,sph,cyl,"0.00",hmDesign), stockKey})}
+                    <button 
+                      key={cyl} 
+                      id={`cell-${sphIndex}-${cylIndex}`} 
+                      onClick={() => setHmSel(isSel ? null : {key:selKey, sph, cyl, glassId:hmGlass, qty:q, barcode:genBC(activeG.tag,sph,cyl,"0.00",hmDesign), stockKey})}
                       className="w-[42px] h-[26px] mx-[1px] rounded flex items-center justify-center transition-colors flex-shrink-0"
                       style={{background: isSel ? "#1d4ed8" : cellBg(q), border: `1px solid ${isSel ? "#60a5fa" : "#ffffff06"}`, zIndex: isSel ? 5 : 1}}>
                       <span className="text-[10px] font-black font-mono" style={{color: isSel ? "#fff" : cellFg(q)}}>{q > 0 ? q : "·"}</span>
