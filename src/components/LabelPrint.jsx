@@ -1,9 +1,9 @@
 // src/components/LabelPrint.jsx
 import React, { useState, useMemo } from "react";
 import { GLASS_TYPES, buildUPCEBars, parseKey, genBC, C } from "../utils/constants";
-import { useToast } from "./ToastContext"; // 👈 Integrated Toasts
-import Skeleton from "./Skeleton"; // 👈 Integrated Skeletons
-import { OptiLogo } from "./Icons"; // 👈 Integrated Logo
+import { useToast } from "./ToastContext"; 
+import Skeleton from "./Skeleton"; 
+import { OptiLogo } from "./Icons"; 
 
 // --- SVG BARCODE GENERATOR FOR LABELS ---
 function upceSVGString(code, height = 45) {
@@ -71,18 +71,18 @@ export default function LabelPrint({ stock }) {
       return [...prev, { barcode: item.barcode, glassName: item.glassName, design: item.design, power: item.power, copies }];
     });
     
-    toast.success(`${item.power} কিউতে যোগ করা হয়েছে`);
+    toast.success(`${item.power} কিউতে যোগ করা হয়েছে`);
     setCopiesInput(prev => ({ ...prev, [item.key]: "" }));
   };
 
   const removeQueueItem = (bc) => {
     setPrintQueue(prev => prev.filter(p => p.barcode !== bc));
-    toast.info("কিউ থেকে সরানো হয়েছে");
+    toast.info("কিউ থেকে সরানো হয়েছে");
   };
 
   const clearQueue = () => {
     setPrintQueue([]);
-    toast.info("প্রিন্ট কিউ সাফ করা হয়েছে");
+    toast.info("প্রিন্ট কিউ সাফ করা হয়েছে");
   };
 
   const totalStickers = printQueue.reduce((sum, item) => sum + item.copies, 0);
@@ -129,43 +129,43 @@ export default function LabelPrint({ stock }) {
       <div className="grid grid-cols-1 lg:grid-cols-[1fr_350px] gap-8">
         
         {/* LEFT: INVENTORY SELECTION */}
-        <div className="bg-[#0f1424] border border-[#1a2540] rounded-2xl p-6 shadow-2xl flex flex-col h-[800px]">
+        <div className="bg-[var(--bg-card)] border border-[var(--border-color)] rounded-2xl p-6 shadow-2xl flex flex-col h-[800px]">
           <h2 className="text-lg font-black text-[#22d3ee] mb-6 flex items-center gap-2"><span>🏷️</span> লেবেল প্রিন্ট জেনারেটর</h2>
           
           <div className="flex gap-2 overflow-x-auto pb-4 mb-2 custom-scrollbar">
             {GLASS_TYPES.map(g => (
               <button key={g.id} onClick={() => setSelGlass(g.id)} 
-                className={`px-5 py-2.5 rounded-xl text-xs font-black border whitespace-nowrap transition-all active:scale-95 ${selGlass === g.id ? "bg-[#1a3a5c] border-[#22d3ee] text-[#22d3ee] shadow-[0_0_15px_rgba(34,211,238,0.2)]" : "bg-[#060f1e] border-[#1a2540] text-[#4a5a70] hover:text-[#dde6f0]"}`}>
+                className={`px-5 py-2.5 rounded-xl text-xs font-black border whitespace-nowrap transition-all active:scale-95 ${selGlass === g.id ? "bg-[var(--bg-nav)] border-[#22d3ee] text-[#22d3ee] shadow-[0_0_15px_rgba(34,211,238,0.2)]" : "bg-[var(--bg-main)] border-[var(--border-color)] text-[var(--text-muted)] hover:text-[var(--text-main)]"}`}>
                 {g.name}
               </button>
             ))}
           </div>
 
-          <div className="flex-1 overflow-y-auto border border-[#1a2540] rounded-2xl bg-[#060f1e] custom-scrollbar">
+          <div className="flex-1 overflow-y-auto border border-[var(--border-color)] rounded-2xl bg-[var(--bg-main)] custom-scrollbar">
             {!stock[selGlass] ? (
                <div className="p-6 space-y-4">
                   {[...Array(8)].map((_, i) => <Skeleton key={i} className="h-12 w-full opacity-10 rounded-lg" />)}
                </div>
             ) : availableItems.length === 0 ? (
-              <div className="flex flex-col items-center justify-center h-full text-[#4a5a70] p-10 text-center">
+              <div className="flex flex-col items-center justify-center h-full text-[var(--text-muted)] p-10 text-center">
                 <div className="text-5xl mb-4 opacity-20">📦</div>
                 <div className="text-sm font-bold uppercase tracking-widest opacity-40">এই ক্যাটাগরিতে কোনো স্টক নেই</div>
               </div>
             ) : (
               <table className="w-full text-left border-collapse">
-                <thead className="sticky top-0 bg-[#0a1526] z-10">
+                <thead className="sticky top-0 bg-[var(--bg-nav)] z-10">
                   <tr>
-                    <th className="p-4 text-[10px] font-black text-[#2a5a80] uppercase tracking-widest border-b border-[#1a2540]">পাওয়ার (Power)</th>
-                    <th className="p-4 text-[10px] font-black text-[#2a5a80] uppercase tracking-widest border-b border-[#1a2540] text-center">স্টক</th>
-                    <th className="p-4 text-[10px] font-black text-[#2a5a80] uppercase tracking-widest border-b border-[#1a2540] text-right">অ্যাকশন</th>
+                    <th className="p-4 text-[10px] font-black text-[var(--text-muted)] uppercase tracking-widest border-b border-[var(--border-color)]">পাওয়ার (Power)</th>
+                    <th className="p-4 text-[10px] font-black text-[var(--text-muted)] uppercase tracking-widest border-b border-[var(--border-color)] text-center">স্টক</th>
+                    <th className="p-4 text-[10px] font-black text-[var(--text-muted)] uppercase tracking-widest border-b border-[var(--border-color)] text-right">অ্যাকশন</th>
                   </tr>
                 </thead>
                 <tbody>
                   {availableItems.map((item, i) => (
-                    <tr key={item.key} className={`border-b border-[#1a2540] hover:bg-[#0f1828] transition-colors ${i % 2 === 0 ? 'bg-transparent' : 'bg-[#050810]'}`}>
+                    <tr key={item.key} className={`border-b border-[var(--border-color)] hover:bg-[var(--bg-card)] transition-colors ${i % 2 === 0 ? 'bg-transparent' : 'bg-[var(--bg-card)]'}`}>
                       <td className="p-4">
-                         <div className="font-mono font-black text-[#dde6f0] text-sm">{item.power}</div>
-                         <div className="text-[10px] text-[#4a5a70] font-bold mt-0.5">{item.design}</div>
+                         <div className="font-mono font-black text-[var(--text-main)] text-sm">{item.power}</div>
+                         <div className="text-[10px] text-[var(--text-muted)] font-bold mt-0.5">{item.design}</div>
                       </td>
                       <td className="p-4 text-center font-mono font-black text-[#4ade80] bg-[#4ade80]/5">{item.stockQty}</td>
                       <td className="p-4">
@@ -173,7 +173,7 @@ export default function LabelPrint({ stock }) {
                           <input type="number" min="1" placeholder="1" 
                             value={copiesInput[item.key] || ""} 
                             onChange={(e) => setCopiesInput({ ...copiesInput, [item.key]: e.target.value })}
-                            className="w-14 bg-[#0a0e1a] border border-[#1a2540] rounded-lg text-center text-xs text-[#22d3ee] font-black outline-none focus:border-[#22d3ee]"
+                            className="w-14 bg-[var(--bg-nav)] border border-[var(--border-color)] rounded-lg text-center text-xs text-[#22d3ee] font-black outline-none focus:border-[#22d3ee]"
                           />
                           <button onClick={() => addToQueue(item)} className="bg-[#0ea5e9]/10 text-[#0ea5e9] border border-[#0ea5e9]/30 hover:bg-[#0ea5e9] hover:text-white px-4 py-2 rounded-lg text-xs font-black transition-all active:scale-90">
                             + ADD
@@ -189,9 +189,9 @@ export default function LabelPrint({ stock }) {
         </div>
 
         {/* RIGHT: PRINT QUEUE */}
-        <div className="bg-[#0f1424] border border-[#1a2540] rounded-2xl p-6 shadow-2xl flex flex-col h-[800px]">
-          <div className="flex justify-between items-center mb-6 border-b border-[#1a2540] pb-4">
-            <h3 className="text-sm font-black text-[#e8f4ff] uppercase tracking-widest flex items-center gap-2"><span>🖨️</span> প্রিন্ট কিউ (Queue)</h3>
+        <div className="bg-[var(--bg-card)] border border-[var(--border-color)] rounded-2xl p-6 shadow-2xl flex flex-col h-[800px]">
+          <div className="flex justify-between items-center mb-6 border-b border-[var(--border-color)] pb-4">
+            <h3 className="text-sm font-black text-[var(--text-main)] uppercase tracking-widest flex items-center gap-2"><span>🖨️</span> প্রিন্ট কিউ (Queue)</h3>
             {printQueue.length > 0 && (
               <button onClick={clearQueue} className="text-[10px] bg-[#f87171]/10 text-[#f87171] px-2 py-1 rounded hover:bg-[#f87171] hover:text-white transition-all font-black uppercase">সাফ</button>
             )}
@@ -199,18 +199,18 @@ export default function LabelPrint({ stock }) {
 
           <div className="flex-1 overflow-y-auto pr-2 custom-scrollbar">
             {printQueue.length === 0 ? (
-              <div className="text-center text-[#4a5a70] text-xs italic mt-20 opacity-50">কিউতে কোনো লেবেল নেই।</div>
+              <div className="text-center text-[var(--text-muted)] text-xs italic mt-20 opacity-50">কিউতে কোনো লেবেল নেই।</div>
             ) : (
               <div className="space-y-3">
                 {printQueue.map((item, i) => (
-                  <div key={i} className="bg-[#060f1e] border border-[#1a3a5c] p-4 rounded-2xl flex justify-between items-center group animate-in slide-in-from-right-4">
+                  <div key={i} className="bg-[var(--bg-main)] border border-[var(--border-color)] p-4 rounded-2xl flex justify-between items-center group animate-in slide-in-from-right-4">
                     <div>
-                      <div className="text-[9px] text-[#4a5a70] font-black uppercase tracking-wider">{item.glassName}</div>
+                      <div className="text-[9px] text-[var(--text-muted)] font-black uppercase tracking-wider">{item.glassName}</div>
                       <div className="font-mono font-black text-[#22d3ee] text-base">{item.power}</div>
                     </div>
                     <div className="flex items-center gap-3">
-                      <div className="bg-[#1a3a5c] px-3 py-1 rounded-lg text-xs font-black text-white">{item.copies} টি</div>
-                      <button onClick={() => removeQueueItem(item.barcode)} className="text-[#4a5a70] hover:text-[#f87171] text-xl transition-colors">×</button>
+                      <div className="bg-[var(--border-color)] px-3 py-1 rounded-lg text-xs font-black text-[var(--text-main)]">{item.copies} টি</div>
+                      <button onClick={() => removeQueueItem(item.barcode)} className="text-[var(--text-muted)] hover:text-[#f87171] text-xl transition-colors">×</button>
                     </div>
                   </div>
                 ))}
@@ -218,9 +218,9 @@ export default function LabelPrint({ stock }) {
             )}
           </div>
 
-          <div className="mt-6 pt-6 border-t border-[#1a2540]">
+          <div className="mt-6 pt-6 border-t border-[var(--border-color)]">
             <div className="flex justify-between items-end mb-6">
-              <div className="text-[10px] text-[#4a5a70] font-black uppercase tracking-widest">মোট স্টিকার সংখ্যা:</div>
+              <div className="text-[10px] text-[var(--text-muted)] font-black uppercase tracking-widest">মোট স্টিকার সংখ্যা:</div>
               <div className="text-4xl font-black font-mono text-[#4ade80] drop-shadow-[0_0_10px_rgba(74,222,128,0.2)]">{totalStickers}</div>
             </div>
             <button 
@@ -229,7 +229,7 @@ export default function LabelPrint({ stock }) {
               className={`w-full py-5 rounded-2xl font-black uppercase tracking-[0.2em] transition-all text-xs active:scale-95 shadow-xl
                 ${printQueue.length > 0 
                   ? 'bg-gradient-to-r from-[#0284c7] to-[#0ea5e9] text-white hover:brightness-110' 
-                  : 'bg-[#1a2540] text-[#4a5a70] cursor-not-allowed opacity-50'}`}
+                  : 'bg-[var(--border-color)] text-[var(--text-muted)] cursor-not-allowed opacity-50'}`}
             >
               প্রিন্ট শুরু করুন 🖨️
             </button>
@@ -238,9 +238,9 @@ export default function LabelPrint({ stock }) {
       </div>
 
       {/* --- STANDARDIZED A QUANTUM PROJECT BRANDING --- */}
-      <div className="pt-10 border-t border-[#1a2540] flex items-center justify-center gap-4 opacity-40">
+      <div className="pt-10 border-t border-[var(--border-color)] flex items-center justify-center gap-4 opacity-40">
         <OptiLogo className="w-6 h-6 grayscale" />
-        <div className="text-[10px] font-black text-[#4a5568] uppercase tracking-[0.4em]">
+        <div className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-[0.4em]">
           A <span className="text-[#0ea5e9]">QUANTUM</span> Project
         </div>
       </div>

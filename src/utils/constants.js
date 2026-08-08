@@ -1,7 +1,7 @@
 // src/utils/constants.js
 export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 export const GLASS_TYPES = [
-  { id:"white",        name:"হোয়াইট",       sub:"সাধারণ সাদা",         accent:"#94a3b8", bg:"#0d1117", tag:"WH" },
+  { id:"white",        name:"হোয়াইট",      sub:"সাধারণ সাদা",        accent:"#94a3b8", bg:"#0d1117", tag:"WH" },
   { id:"bluecut",      name:"ব্লু কাট",      sub:"Blue Cut / Anti-UV",   accent:"#38bdf8", bg:"#040e1a", tag:"BC" },
   { id:"photosun",     name:"ফটোক্রোমিক",   sub:"Photochromic",          accent:"#fbbf24", bg:"#140e00", tag:"PS" },
   { id:"mc",           name:"এমসি",          sub:"MC / Multi-Coat",       accent:"#4ade80", bg:"#001208", tag:"MC" },
@@ -29,11 +29,26 @@ export const SPH_LIST = buildSPH();
 export const CYL_LIST = buildCYL(); 
 export const ADD_LIST = buildADD();
 
+// 🚀 UPGRADED THEME CONSTANTS: These now pull dynamically from index.css variables!
 export const C = { 
-  bg0:"#050810", bg1:"#0a0e1a", bg2:"#0f1424", bdr:"#1a2540", 
-  cyan:"#22d3ee", green:"#4ade80", teal:"#2dd4bf", red:"#f87171", 
-  rose:"#fb7185", yellow:"#fbbf24", purple:"#c084fc", pink:"#e879f9", 
-  muted:"#4a5568", txt:"#dde6f0", txts:"#4a5a70", faint:"#0f1828"
+  bg0: "var(--bg-main)",
+  bg1: "var(--bg-nav)",
+  bg2: "var(--bg-card)",
+  bdr: "var(--border-color)", 
+  txt: "var(--text-main)",
+  txts: "var(--text-muted)",
+  muted: "var(--text-muted)",
+  
+  // These accent colors look good in both Light and Dark mode
+  cyan: "#22d3ee", 
+  green: "#4ade80", 
+  teal: "#2dd4bf", 
+  red: "#f87171", 
+  rose: "#fb7185", 
+  yellow: "#fbbf24", 
+  purple: "#c084fc", 
+  pink: "#e879f9", 
+  faint: "#0f1828"
 };
 
 // V6 Fix: Bulletproof Key Generator (Strips formatting so strings never mismatch)
@@ -82,6 +97,7 @@ export function buildUPCEBars(str) {
   [1,1,1,1,1,1].forEach((u, i) => bars.push({u, dark: i%2!==0}));
   return { bars, digits: d, check };
 }
+
 // --- RBAC MOCK DATABASE (For testing Login & Permissions) ---
 export const MOCK_USERS = [
   {

@@ -1,12 +1,12 @@
 // src/components/Scanner.jsx
 import React, { useState, useMemo, useRef, useCallback } from "react";
 import { C, GLASS_TYPES, parseKey, makeKey, genBC, today, buildUPCEBars } from "../utils/constants";
-import { useToast } from "./ToastContext"; // 👈 Integrated Toasts
-import { OptiLogo } from "./Icons"; // 👈 Integrated Logo
+import { useToast } from "./ToastContext"; 
+import { OptiLogo } from "./Icons"; 
 
 // --- INLINE STYLES ---
-const inp = {width:"100%", padding:"12px 14px", borderRadius:10, border:"1px solid #1a2540", background:"#0a0e1a", color:"#dde6f0", fontSize:14, outline:"none", fontFamily:"inherit"};
-const card = (extra={}) => ({background:"#0f1424", border:"1px solid #1a2540", borderRadius:16, padding:20, ...extra});
+const inp = {width:"100%", padding:"12px 14px", borderRadius:10, border:"1px solid var(--border-color)", background:"var(--bg-main)", color:"var(--text-main)", fontSize:14, outline:"none", fontFamily:"inherit"};
+const card = (extra={}) => ({background:"var(--bg-card)", border:"1px solid var(--border-color)", borderRadius:16, padding:20, ...extra});
 
 // --- BARCODE RENDERER ---
 function BarcodeStrip({ code, height=58 }) {
@@ -30,7 +30,7 @@ export default function Scanner({ authUser, stock, setStock, txns, setTxns }) {
   const toast = useToast();
   const [inputVal, setInputVal] = useState(""); 
   const [result, setResult] = useState(null); 
-  const [loading, setLoading] = useState(false); // 👈 Added loading state
+  const [loading, setLoading] = useState(false); 
   const [log, setLog] = useState([]); 
   const [adjQty, setAdjQty] = useState(1); 
   const [showList, setShowList] = useState(false); 
@@ -76,7 +76,7 @@ export default function Scanner({ authUser, stock, setStock, txns, setTxns }) {
     } else {
       setResult({notFound:true, code:c}); 
       setLog(p => [{code:c, found:false, time}, ...p.slice(0,19)]);
-      toast.warning("বারকোডটি স্টকে পাওয়া যায়নি!");
+      toast.warning("বারকোডটি স্টকে পাওয়া যায়নি!");
     }
     
     setInputVal(c); 
@@ -123,7 +123,7 @@ export default function Scanner({ authUser, stock, setStock, txns, setTxns }) {
 
       if (!response.ok) throw new Error("Cloud sync failed!");
 
-      toast.success(dir > 0 ? "স্টক ইন করা হয়েছে" : "স্টক আউট সম্পন্ন");
+      toast.success(dir > 0 ? "স্টক ইন করা হয়েছে" : "স্টক আউট সম্পন্ন");
 
       setStock(prev => {
         const gStock = prev[result.glassType] || {};
@@ -153,16 +153,16 @@ export default function Scanner({ authUser, stock, setStock, txns, setTxns }) {
         
         <div className="flex flex-col gap-6">
           <div style={card()}>
-            <div className="text-sm font-black text-[#e8f4ff] mb-4 flex items-center gap-2"><span>📷</span> বারকোড স্ক্যানার</div>
+            <div className="text-sm font-black text-[var(--text-main)] mb-4 flex items-center gap-2"><span>📷</span> বারকোড স্ক্যানার</div>
             <div className="flex gap-2 mb-6">
-              <input ref={inputRef} value={inputVal} onChange={e => setInputVal(e.target.value.toUpperCase())} onKeyDown={e => { if(e.key==="Enter") { e.preventDefault(); doSearch(inputVal); }}} placeholder="স্ক্যানার দিয়ে অথবা টাইপ করে বারকোড দিন..." style={{...inp, flex:1, border:"2px solid #1a3a5c", color:C.green}}/>
+              <input ref={inputRef} value={inputVal} onChange={e => setInputVal(e.target.value.toUpperCase())} onKeyDown={e => { if(e.key==="Enter") { e.preventDefault(); doSearch(inputVal); }}} placeholder="স্ক্যানার দিয়ে অথবা টাইপ করে বারকোড দিন..." style={{...inp, flex:1, border:"2px solid var(--border-color)", color:C.green}}/>
               <button onClick={() => doSearch(inputVal)} className="bg-gradient-to-br from-[#0ea5e9] to-[#0369a1] border-none rounded-xl px-8 text-white font-black cursor-pointer shadow-lg active:scale-95 transition-all">সার্চ</button>
             </div>
             
-            <div className="text-[10px] text-[#2a5a80] mb-3 font-bold uppercase tracking-widest">স্টকে থাকা বারকোড ({allBarcodes.length}টি)</div>
+            <div className="text-[10px] text-[var(--text-muted)] mb-3 font-bold uppercase tracking-widest">স্টকে থাকা বারকোড ({allBarcodes.length}টি)</div>
             <div className="flex flex-wrap gap-2 overflow-hidden transition-all duration-300" style={{maxHeight: showList ? 400 : 36}}>
               {allBarcodes.map(bc => (
-                <button key={bc} onClick={() => { setInputVal(bc); doSearch(bc); }} className="bg-[#060f1e] border border-[#1a3a5c] rounded-lg px-3 py-1.5 text-[#22d3ee] text-[10px] cursor-pointer hover:bg-[#1a3a5c] transition-colors">{bc}</button>
+                <button key={bc} onClick={() => { setInputVal(bc); doSearch(bc); }} className="bg-[var(--bg-main)] border border-[var(--border-color)] rounded-lg px-3 py-1.5 text-[#22d3ee] text-[10px] cursor-pointer hover:bg-[var(--border-color)] transition-colors">{bc}</button>
               ))}
             </div>
             {allBarcodes.length > 10 && (
@@ -173,30 +173,30 @@ export default function Scanner({ authUser, stock, setStock, txns, setTxns }) {
           </div>
 
           {result && !result.notFound && (
-            <div style={card({border: "1px solid #00d9a040", background: "linear-gradient(180deg, #0f1424, #060f1e)"})}>
+            <div style={card({border: "1px solid #00d9a040", background: "var(--bg-card)"})}>
               <div className="flex justify-between items-start mb-8">
-                <span className="text-lg font-black text-[#00d9a0] flex items-center gap-2"><span>✅</span> লেন্স পাওয়া গেছে</span>
+                <span className="text-lg font-black text-[#00d9a0] flex items-center gap-2"><span>✅</span> লেন্স পাওয়া গেছে</span>
                 <div className="text-right">
                   <div className="text-5xl font-black font-mono leading-none" style={{color: result.qty === 0 ? C.red : result.qty <= 3 ? C.yellow : "#00d9a0"}}>{result.qty}</div>
-                  <div className="text-[10px] text-[#4a5a70] uppercase font-bold tracking-widest mt-2">বর্তমান মজুদ (Stock)</div>
+                  <div className="text-[10px] text-[var(--text-muted)] uppercase font-bold tracking-widest mt-2">বর্তমান মজুদ (Stock)</div>
                 </div>
               </div>
               
               <div className="grid grid-cols-3 gap-4 mb-8">
                 {[["গ্লাস", result.glassName, C.cyan], ["SPH", result.sph, "#f472b6"], ["CYL", result.cyl, "#a3e635"], ["ADD", result.add, C.purple], ["বারকোড", result.barcode, C.teal]].map(([l,v,c]) => (
-                  <div key={l} className="bg-[#050810] rounded-xl p-4 border border-[#1a3a5c]">
-                    <div className="text-[9px] text-[#4a5a70] font-black uppercase tracking-widest mb-1">{l}</div>
+                  <div key={l} className="bg-[var(--bg-main)] rounded-xl p-4 border border-[var(--border-color)]">
+                    <div className="text-[9px] text-[var(--text-muted)] font-black uppercase tracking-widest mb-1">{l}</div>
                     <div className="text-sm font-black font-mono" style={{color: c}}>{v}</div>
                   </div>
                 ))}
               </div>
 
-              <div className="flex gap-4 items-center p-4 bg-[#050810] rounded-2xl border border-[#1a3a5c] mb-8">
-                <span className="text-[11px] text-[#4a5568] font-black uppercase tracking-widest ml-2">পরিমাণ:</span>
-                <div className="flex items-center gap-1 bg-[#1a3a5c] rounded-xl p-1">
-                   <button onClick={()=>setAdjQty(p=>Math.max(1,p-1))} className="w-10 h-10 rounded-lg bg-[#0f1424] border-none text-[#c8dff0] cursor-pointer text-xl font-black active:scale-90 transition-all">−</button>
-                   <span className="text-2xl font-black text-[#e8f4ff] min-w-[50px] text-center font-mono">{adjQty}</span>
-                   <button onClick={()=>setAdjQty(p=>p+1)} className="w-10 h-10 rounded-lg bg-[#0f1424] border-none text-[#c8dff0] cursor-pointer text-xl font-black active:scale-90 transition-all">+</button>
+              <div className="flex gap-4 items-center p-4 bg-[var(--bg-main)] rounded-2xl border border-[var(--border-color)] mb-8">
+                <span className="text-[11px] text-[var(--text-muted)] font-black uppercase tracking-widest ml-2">পরিমাণ:</span>
+                <div className="flex items-center gap-1 bg-[var(--bg-card)] border border-[var(--border-color)] rounded-xl p-1">
+                   <button onClick={()=>setAdjQty(p=>Math.max(1,p-1))} className="w-10 h-10 rounded-lg bg-[var(--bg-main)] border-none text-[var(--text-main)] cursor-pointer text-xl font-black active:scale-90 transition-all">−</button>
+                   <span className="text-2xl font-black text-[var(--text-main)] min-w-[50px] text-center font-mono">{adjQty}</span>
+                   <button onClick={()=>setAdjQty(p=>p+1)} className="w-10 h-10 rounded-lg bg-[var(--bg-main)] border-none text-[var(--text-main)] cursor-pointer text-xl font-black active:scale-90 transition-all">+</button>
                 </div>
                 <div className="flex-1"/>
                 <div className="flex gap-3">
@@ -205,7 +205,7 @@ export default function Scanner({ authUser, stock, setStock, txns, setTxns }) {
                 </div>
               </div>
 
-              <div className="pt-6 border-t border-[#1a3a5c] flex justify-center opacity-80">
+              <div className="pt-6 border-t border-[var(--border-color)] flex justify-center opacity-80">
                 <BarcodeStrip code={result.barcode} height={60}/>
               </div>
             </div>
@@ -216,19 +216,19 @@ export default function Scanner({ authUser, stock, setStock, txns, setTxns }) {
           <div className="text-[11px] font-black text-[#22d3ee] uppercase tracking-widest mb-6 flex items-center gap-2"><span>⏱</span> স্ক্যানার লগ</div>
           <div className="flex-1 overflow-y-auto custom-scrollbar space-y-3">
             {log.length === 0 ? (
-              <div className="text-center text-xs text-[#4a5568] py-20 italic">স্ক্যান ইতিহাস খালি</div>
+              <div className="text-center text-xs text-[var(--text-muted)] py-20 italic">স্ক্যান ইতিহাস খালি</div>
             ) : (
               log.map((s,i) => (
-                <div key={i} className={`p-4 rounded-xl border transition-all ${i===0 ? "bg-[#060f1e] border-[#0ea5e9]/30" : "bg-transparent border-[#1a3a5c]/40"} ${s.found ? "" : "border-[#f8717130]"}`}>
+                <div key={i} className={`p-4 rounded-xl border transition-all ${i===0 ? "bg-[var(--bg-main)] border-[#0ea5e9]/30" : "bg-transparent border-[var(--border-color)]"} ${s.found ? "" : "border-[#f8717130]"}`}>
                   <div className="flex justify-between gap-2 mb-2">
                     <span className="text-[11px] font-black font-mono" style={{color: s.found ? "#00d9a0" : C.red}}>{s.code}</span>
-                    <span className="text-[9px] text-[#4a5a70] font-bold">{s.time}</span>
+                    <span className="text-[9px] text-[var(--text-muted)] font-bold">{s.time}</span>
                   </div>
                   {s.found && (
-                    <div className="text-[10px] text-[#c8dff0] mt-2 flex justify-between items-end">
+                    <div className="text-[10px] text-[var(--text-main)] mt-2 flex justify-between items-end">
                       <div>
                         <div className="font-bold">{s.name}</div>
-                        <div className="text-[#4a5a70] font-mono mt-0.5">S{s.sph} C{s.cyl}</div>
+                        <div className="text-[var(--text-muted)] font-mono mt-0.5">S{s.sph} C{s.cyl}</div>
                       </div>
                       <div className="font-black text-[#0ea5e9] bg-[#0ea5e9]/10 px-2 py-1 rounded">মজুদ: {s.qty}</div>
                     </div>
@@ -241,9 +241,9 @@ export default function Scanner({ authUser, stock, setStock, txns, setTxns }) {
       </div>
 
       {/* --- STANDARDIZED A QUANTUM PROJECT BRANDING --- */}
-      <div className="pt-10 border-t border-[#1a2540] flex items-center justify-center gap-4 opacity-40">
+      <div className="pt-10 border-t border-[var(--border-color)] flex items-center justify-center gap-4 opacity-40">
         <OptiLogo className="w-6 h-6 grayscale" />
-        <div className="text-[10px] font-black text-[#4a5568] uppercase tracking-[0.4em]">
+        <div className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-[0.4em]">
           A <span className="text-[#0ea5e9]">QUANTUM</span> Project
         </div>
       </div>

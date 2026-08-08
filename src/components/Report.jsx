@@ -1,10 +1,10 @@
 // src/components/Report.jsx
 import React, { useState, useMemo } from "react";
 import { C, GLASS_TYPES, fmtTk, today, SM, buildUPCEBars } from "../utils/constants";
-import Skeleton, { CardSkeleton } from "./Skeleton"; // 👈 Integrated Skeletons
-import { OptiLogo } from "./Icons"; // 👈 Integrated Logo
+import Skeleton, { CardSkeleton } from "./Skeleton"; 
+import { OptiLogo } from "./Icons"; 
 
-const inp = { padding: "8px 12px", borderRadius: 8, border: "1px solid #1a2540", background: "#050810", color: "#dde6f0", fontSize: 12, outline: "none" };
+const inp = { padding: "8px 12px", borderRadius: 8, border: "1px solid var(--border-color)", background: "var(--bg-main)", color: "var(--text-main)", fontSize: 12, outline: "none" };
 
 // --- MINI BARCODE GENERATOR FOR PDF TABLES ---
 function getMiniBarcode(code) {
@@ -241,9 +241,9 @@ export default function Report({ txns }) {
   if (!reportData) {
     return (
       <div className="space-y-6 pb-10">
-        <div className="bg-[#0f1424] border border-[#1a2540] rounded-2xl p-5 shadow-xl"><Skeleton className="h-20 w-full rounded-xl opacity-20" /></div>
+        <div className="bg-[var(--bg-card)] border border-[var(--border-color)] rounded-2xl p-5 shadow-xl"><Skeleton className="h-20 w-full rounded-xl opacity-20" /></div>
         <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-4">{[...Array(7)].map((_, i) => <CardSkeleton key={i} />)}</div>
-        <div className="bg-[#0f1424] border border-[#1a2540] rounded-2xl p-5 shadow-xl"><Skeleton className="h-64 w-full rounded-xl opacity-10" /></div>
+        <div className="bg-[var(--bg-card)] border border-[var(--border-color)] rounded-2xl p-5 shadow-xl"><Skeleton className="h-64 w-full rounded-xl opacity-10" /></div>
       </div>
     );
   }
@@ -252,24 +252,24 @@ export default function Report({ txns }) {
     <div className="animate-in fade-in zoom-in-95 duration-500 space-y-6 pb-10">
       
       {/* --- 1. FILTER CONTROLS --- */}
-      <div className="bg-[#0f1424] border border-[#1a2540] rounded-2xl p-5 shadow-xl">
-        <h3 className="text-[10px] text-[#4a5a70] uppercase font-black tracking-widest mb-4 flex items-center gap-2"><span>◎</span> রিপোর্টের ধরন</h3>
+      <div className="bg-[var(--bg-card)] border border-[var(--border-color)] rounded-2xl p-5 shadow-xl">
+        <h3 className="text-[10px] text-[var(--text-muted)] uppercase font-black tracking-widest mb-4 flex items-center gap-2"><span>◎</span> রিপোর্টের ধরন</h3>
         <div className="flex flex-wrap gap-4 mb-4">
-          <div className="flex bg-[#050810] border border-[#1a2540] rounded-lg overflow-hidden">
+          <div className="flex bg-[var(--bg-main)] border border-[var(--border-color)] rounded-lg overflow-hidden">
             {[{id:"daily", l:"দৈনিক", i:"🗓️"}, {id:"monthly", l:"মাসিক", i:"📅"}, {id:"yearly", l:"বার্ষিক", i:"📊"}, {id:"custom", l:"কাস্টম", i:"🔎"}].map(btn => (
-              <button key={btn.id} onClick={() => setDatePreset(btn.id)} className={`px-4 py-2 text-xs font-bold transition-colors ${reportType === btn.id ? "bg-[#1a3a5c] text-[#22d3ee]" : "text-[#4a5a70] hover:text-[#dde6f0]"}`}>{btn.i} {btn.l}</button>
+              <button key={btn.id} onClick={() => setDatePreset(btn.id)} className={`px-4 py-2 text-xs font-bold transition-colors ${reportType === btn.id ? "bg-[var(--border-color)] text-[#22d3ee]" : "text-[var(--text-muted)] hover:text-[var(--text-main)]"}`}>{btn.i} {btn.l}</button>
             ))}
           </div>
-          <div className="flex items-center gap-2 bg-[#050810] border border-[#1a2540] px-3 py-1.5 rounded-lg">
+          <div className="flex items-center gap-2 bg-[var(--bg-main)] border border-[var(--border-color)] px-3 py-1.5 rounded-lg">
             <span className="text-xs text-[#22d3ee]">🗓️</span>
-            <input type="date" value={dateRange.start} onChange={e => {setDateRange({...dateRange, start: e.target.value}); setReportType("custom");}} className="bg-transparent text-[#dde6f0] text-xs outline-none font-mono" />
-            <span className="text-[#4a5a70]">—</span>
-            <input type="date" value={dateRange.end} onChange={e => {setDateRange({...dateRange, end: e.target.value}); setReportType("custom");}} className="bg-transparent text-[#dde6f0] text-xs outline-none font-mono" />
+            <input type="date" value={dateRange.start} onChange={e => {setDateRange({...dateRange, start: e.target.value}); setReportType("custom");}} className="bg-transparent text-[var(--text-main)] text-xs outline-none font-mono" />
+            <span className="text-[var(--text-muted)]">—</span>
+            <input type="date" value={dateRange.end} onChange={e => {setDateRange({...dateRange, end: e.target.value}); setReportType("custom");}} className="bg-transparent text-[var(--text-main)] text-xs outline-none font-mono" />
           </div>
         </div>
         <div className="flex gap-4">
-          <div><label className="block text-[9px] text-[#4a5a70] font-bold mb-1">গ্লাস টাইপ</label><select value={filterGlass} onChange={e => setFilterGlass(e.target.value)} style={inp} className="w-48"><option value="all">সব গ্লাস</option>{GLASS_TYPES.map(g => <option key={g.id} value={g.id}>{g.name}</option>)}</select></div>
-          <div><label className="block text-[9px] text-[#4a5a70] font-bold mb-1">লেনদেনের ধরন</label><select value={filterType} onChange={e => setFilterType(e.target.value)} style={inp} className="w-48"><option value="all">সব ধরন</option><option value="purchase">ক্রয়</option><option value="sale">পাইকারি বিক্রয়</option><option value="use">খুচরা বিক্রয়</option></select></div>
+          <div><label className="block text-[9px] text-[var(--text-muted)] font-bold mb-1">গ্লাস টাইপ</label><select value={filterGlass} onChange={e => setFilterGlass(e.target.value)} style={inp} className="w-48"><option value="all">সব গ্লাস</option>{GLASS_TYPES.map(g => <option key={g.id} value={g.id}>{g.name}</option>)}</select></div>
+          <div><label className="block text-[9px] text-[var(--text-muted)] font-bold mb-1">লেনদেনের ধরন</label><select value={filterType} onChange={e => setFilterType(e.target.value)} style={inp} className="w-48"><option value="all">সব ধরন</option><option value="purchase">ক্রয়</option><option value="sale">পাইকারি বিক্রয়</option><option value="use">খুচরা বিক্রয়</option></select></div>
         </div>
       </div>
 
@@ -284,75 +284,75 @@ export default function Report({ txns }) {
           { l: "মোট বিক্রয় আয়", v: fmtTk(reportData.revSales), i: "💵", c: "#fbbf24", tk:true },
           { l: "ক্রয় ব্যয়", v: fmtTk(reportData.costPurchases), i: "📄", c: "#38bdf8", tk:true }
         ].map((c, i) => (
-          <div key={i} className="bg-[#0f1424] border border-[#1a2540] rounded-xl p-4 flex flex-col justify-between shadow-lg relative overflow-hidden group">
+          <div key={i} className="bg-[var(--bg-card)] border border-[var(--border-color)] rounded-xl p-4 flex flex-col justify-between shadow-lg relative overflow-hidden group">
             <div className="absolute top-0 right-0 h-1 w-full" style={{background: `linear-gradient(90deg, transparent, ${c.c})`, opacity:0.3}}></div>
             <div className="text-xl mb-2 opacity-80">{c.i}</div>
-            <div><div className={`font-black ${c.tk ? "text-base" : "text-3xl"} font-mono`} style={{color: c.c}}>{c.v}</div><div className="text-[9px] text-[#4a5a70] uppercase font-bold mt-1">{c.l}</div></div>
+            <div><div className={`font-black ${c.tk ? "text-base" : "text-3xl"} font-mono`} style={{color: c.c}}>{c.v}</div><div className="text-[9px] text-[var(--text-muted)] uppercase font-bold mt-1">{c.l}</div></div>
           </div>
         ))}
       </div>
 
       {/* --- 3. P&L ANALYSIS --- */}
-      <div className="bg-[#0f1424] border border-[#1a2540] rounded-2xl p-5 shadow-xl">
-        <h3 className="text-sm font-black text-[#e8f4ff] mb-4 flex items-center gap-2"><span>📊</span> লাভ/ক্ষতি বিশ্লেষণ</h3>
+      <div className="bg-[var(--bg-card)] border border-[var(--border-color)] rounded-2xl p-5 shadow-xl">
+        <h3 className="text-sm font-black text-[var(--text-main)] mb-4 flex items-center gap-2"><span>📊</span> লাভ/ক্ষতি বিশ্লেষণ</h3>
         <div className="grid grid-cols-2 lg:grid-cols-6 gap-4 mb-6">
-          <div className="bg-[#050810] border border-[#1a2540] p-4 rounded-xl"><div className="text-sm mb-1">💰</div><div className="text-lg font-mono font-black text-[#4ade80]">{fmtTk(reportData.revSales)}</div><div className="text-[8px] text-[#4a5a70] font-bold">মোট বিক্রয় আয়</div></div>
-          <div className="bg-[#050810] border border-[#1a2540] p-4 rounded-xl"><div className="text-sm mb-1">📄</div><div className="text-lg font-mono font-black text-[#fbbf24]">{fmtTk(reportData.totalCogs)}</div><div className="text-[8px] text-[#4a5a70] font-bold">COGS</div></div>
-          <div className="bg-[#050810] border border-[#1a2540] p-4 rounded-xl"><div className="text-sm mb-1">📈</div><div className="text-lg font-mono font-black text-[#22d3ee]">{fmtTk(reportData.grossProfit)}</div><div className="text-[8px] text-[#4a5a70] font-bold">গ্রস মুনাফা</div></div>
-          <div className="bg-[#050810] border border-[#1a2540] p-4 rounded-xl"><div className="text-sm mb-1">🔧</div><div className="text-lg font-mono font-black text-[#fb923c]">- {fmtTk(reportData.totalUseLoss)}</div><div className="text-[8px] text-[#4a5a70] font-bold">ব্যবহারে ক্ষতি</div></div>
-          <div className="bg-[#050810] border border-[#1a2540] p-4 rounded-xl"><div className="text-sm mb-1">💔</div><div className="text-lg font-mono font-black text-[#f87171]">- {fmtTk(reportData.totalBrokenLoss)}</div><div className="text-[8px] text-[#4a5a70] font-bold">ভাঙায় ক্ষতি</div></div>
-          <div className="bg-[#1a2540] border border-[#2a3a5c] p-4 rounded-xl relative overflow-hidden"><div className="text-sm mb-1">❌</div><div className={`text-xl font-mono font-black ${reportData.netProfit >= 0 ? "text-[#4ade80]" : "text-[#f87171]"}`}>{reportData.netProfit >= 0 ? "" : "-"}{fmtTk(Math.abs(reportData.netProfit))}</div><div className="text-[8px] text-[#94a3b8] font-bold">নিট লাভ/ক্ষতি</div></div>
+          <div className="bg-[var(--bg-main)] border border-[var(--border-color)] p-4 rounded-xl"><div className="text-sm mb-1">💰</div><div className="text-lg font-mono font-black text-[#4ade80]">{fmtTk(reportData.revSales)}</div><div className="text-[8px] text-[var(--text-muted)] font-bold">মোট বিক্রয় আয়</div></div>
+          <div className="bg-[var(--bg-main)] border border-[var(--border-color)] p-4 rounded-xl"><div className="text-sm mb-1">📄</div><div className="text-lg font-mono font-black text-[#fbbf24]">{fmtTk(reportData.totalCogs)}</div><div className="text-[8px] text-[var(--text-muted)] font-bold">COGS</div></div>
+          <div className="bg-[var(--bg-main)] border border-[var(--border-color)] p-4 rounded-xl"><div className="text-sm mb-1">📈</div><div className="text-lg font-mono font-black text-[#22d3ee]">{fmtTk(reportData.grossProfit)}</div><div className="text-[8px] text-[var(--text-muted)] font-bold">গ্রস মুনাফা</div></div>
+          <div className="bg-[var(--bg-main)] border border-[var(--border-color)] p-4 rounded-xl"><div className="text-sm mb-1">🔧</div><div className="text-lg font-mono font-black text-[#fb923c]">- {fmtTk(reportData.totalUseLoss)}</div><div className="text-[8px] text-[var(--text-muted)] font-bold">ব্যবহারে ক্ষতি</div></div>
+          <div className="bg-[var(--bg-main)] border border-[var(--border-color)] p-4 rounded-xl"><div className="text-sm mb-1">💔</div><div className="text-lg font-mono font-black text-[#f87171]">- {fmtTk(reportData.totalBrokenLoss)}</div><div className="text-[8px] text-[var(--text-muted)] font-bold">ভাঙায় ক্ষতি</div></div>
+          <div className="bg-[var(--bg-nav)] border border-[var(--border-color)] p-4 rounded-xl relative overflow-hidden"><div className="text-sm mb-1">❌</div><div className={`text-xl font-mono font-black ${reportData.netProfit >= 0 ? "text-[#4ade80]" : "text-[#f87171]"}`}>{reportData.netProfit >= 0 ? "" : "-"}{fmtTk(Math.abs(reportData.netProfit))}</div><div className="text-[8px] text-[var(--text-muted)] font-bold">নিট লাভ/ক্ষতি</div></div>
         </div>
         <div className="mb-6">
-          <div className="flex justify-between text-[10px] text-[#4a5a70] font-bold mb-2"><span>গ্রস প্রফিট মার্জিন</span><span className="text-[#fbbf24] font-black text-sm">{reportData.margin.toFixed(1)}%</span></div>
-          <div className="w-full bg-[#050810] rounded-full h-2 overflow-hidden border border-[#1a2540]"><div className="h-full bg-gradient-to-r from-[#fb923c] to-[#fbbf24] rounded-full transition-all duration-1000" style={{width: `${Math.max(0, Math.min(100, reportData.margin))}%`}}></div></div>
-          <div className="flex justify-between text-[8px] text-[#4a5a70] mt-1 font-mono"><span>0%</span><span>লক্ষ্য: ২০%</span><span>100%</span></div>
+          <div className="flex justify-between text-[10px] text-[var(--text-muted)] font-bold mb-2"><span>গ্রস প্রফিট মার্জিন</span><span className="text-[#fbbf24] font-black text-sm">{reportData.margin.toFixed(1)}%</span></div>
+          <div className="w-full bg-[var(--bg-main)] rounded-full h-2 overflow-hidden border border-[var(--border-color)]"><div className="h-full bg-gradient-to-r from-[#fb923c] to-[#fbbf24] rounded-full transition-all duration-1000" style={{width: `${Math.max(0, Math.min(100, reportData.margin))}%`}}></div></div>
+          <div className="flex justify-between text-[8px] text-[var(--text-muted)] mt-1 font-mono"><span>0%</span><span>লক্ষ্য: ২০%</span><span>100%</span></div>
         </div>
       </div>
 
       {/* --- 4. REPORT EXPORT UI --- */}
-      <div className="bg-[#0f1424] border border-[#1a2540] rounded-2xl p-6 shadow-xl relative overflow-hidden">
-        <h3 className="text-base font-black text-[#e8f4ff] mb-6 flex items-center gap-2">📄 রিপোর্ট এক্সপোর্ট</h3>
+      <div className="bg-[var(--bg-card)] border border-[var(--border-color)] rounded-2xl p-6 shadow-xl relative overflow-hidden">
+        <h3 className="text-base font-black text-[var(--text-main)] mb-6 flex items-center gap-2">📄 রিপোর্ট এক্সপোর্ট</h3>
         <div className="mb-6">
-          <div className="text-[10px] text-[#4a5a70] font-bold uppercase tracking-widest mb-3"><span>▸</span> একসাথে সব ধরন</div>
+          <div className="text-[10px] text-[var(--text-muted)] font-bold uppercase tracking-widest mb-3"><span>▸</span> একসাথে সব ধরন</div>
           <div className="flex flex-wrap gap-4">
             <button onClick={() => executePrint("all")} className="bg-gradient-to-r from-[#0284c7] to-[#0ea5e9] text-white px-6 py-3 rounded-lg font-black tracking-widest shadow-lg hover:opacity-90 active:scale-95 transition-all text-xs flex items-center gap-2">📄 সম্পূর্ণ রিপোর্ট PDF</button>
-            <button onClick={() => executePrint("grouped")} className="bg-[#050810] border border-[#1a2540] text-[#fbbf24] px-6 py-3 rounded-lg font-black tracking-widest hover:bg-[#fbbf24]/10 transition-all text-xs flex items-center gap-2">📂 সব ধরন আলাদাভাবে (PDF)</button>
+            <button onClick={() => executePrint("grouped")} className="bg-[var(--bg-main)] border border-[var(--border-color)] text-[#fbbf24] px-6 py-3 rounded-lg font-black tracking-widest hover:bg-[#fbbf24]/10 transition-all text-xs flex items-center gap-2">📂 সব ধরন আলাদাভাবে (PDF)</button>
             <button onClick={exportToCSV} className="bg-gradient-to-r from-[#16a34a] to-[#22c55e] text-white px-6 py-3 rounded-lg font-black tracking-widest shadow-lg hover:opacity-90 active:scale-95 transition-all text-xs lg:ml-auto flex items-center gap-2">📊 এক্সেল (CSV) ডাউনলোড</button>
           </div>
         </div>
         <div>
-          <div className="text-[10px] text-[#4a5a70] font-bold uppercase tracking-widest mb-3"><span>▸</span> আলাদা ধরন অনুযায়ী</div>
+          <div className="text-[10px] text-[var(--text-muted)] font-bold uppercase tracking-widest mb-3"><span>▸</span> আলাদা ধরন অনুযায়ী</div>
           <div className="flex flex-wrap gap-3">
             {["import", "purchase", "sale", "use", "broken"].map(id => (
-              <button key={id} onClick={() => executePrint(id)} disabled={counts[id] === 0} className={`flex items-center gap-2 px-4 py-2 rounded-lg border transition-all text-xs font-bold ${counts[id] > 0 ? `bg-[#0a0e1a] border-[#1a3a5c] text-[#dde6f0] hover:bg-[#1a2540] cursor-pointer` : `bg-[#050810] opacity-50 cursor-not-allowed`}`}>{SM[id]?.icon} {SM[id]?.label} ({counts[id]})</button>
+              <button key={id} onClick={() => executePrint(id)} disabled={counts[id] === 0} className={`flex items-center gap-2 px-4 py-2 rounded-lg border transition-all text-xs font-bold ${counts[id] > 0 ? `bg-[var(--bg-nav)] border-[var(--border-color)] text-[var(--text-main)] hover:bg-[var(--border-color)] cursor-pointer` : `bg-[var(--bg-main)] opacity-50 cursor-not-allowed`}`}>{SM[id]?.icon} {SM[id]?.label} ({counts[id]})</button>
             ))}
           </div>
         </div>
       </div>
 
       {/* --- 5. TRANSACTION LEDGER --- */}
-      <div className="bg-[#0f1424] border border-[#1a2540] rounded-2xl p-5 shadow-xl">
-        <h3 className="text-xs font-black text-[#4a5a70] mb-4 uppercase tracking-widest">মোট {counts.all} টি লেনদেন (Ledger)</h3>
-        <div className="overflow-x-auto border border-[#1a2540] rounded-xl max-h-[500px] custom-scrollbar">
+      <div className="bg-[var(--bg-card)] border border-[var(--border-color)] rounded-2xl p-5 shadow-xl">
+        <h3 className="text-xs font-black text-[var(--text-muted)] mb-4 uppercase tracking-widest">মোট {counts.all} টি লেনদেন (Ledger)</h3>
+        <div className="overflow-x-auto border border-[var(--border-color)] rounded-xl max-h-[500px] custom-scrollbar">
           <table className="w-full text-left border-collapse text-xs">
-            <thead className="bg-[#060f1e] border-b-2 border-[#1a3a5c] sticky top-0 z-10">
-              <tr><th className="p-3 text-[10px] font-black text-[#2a5a80] uppercase">তারিখ</th><th className="p-3 text-[10px] font-black text-[#2a5a80] uppercase">সময়</th><th className="p-3 text-[10px] font-black text-[#2a5a80] uppercase">ধরন</th><th className="p-3 text-[10px] font-black text-[#2a5a80] uppercase">গ্লাস</th><th className="p-3 text-[10px] font-black text-[#2a5a80] uppercase">প্রেসক্রিপশন</th><th className="p-3 text-[10px] font-black text-[#2a5a80] uppercase text-center">পরিমাণ</th><th className="p-3 text-[10px] font-black text-[#2a5a80] uppercase">একক মূল্য</th><th className="p-3 text-[10px] font-black text-[#2a5a80] uppercase">মোট</th><th className="p-3 text-[10px] font-black text-[#2a5a80] uppercase">গ্রাহক/বিবরণ</th></tr>
+            <thead className="bg-[var(--bg-nav)] border-b-2 border-[var(--border-color)] sticky top-0 z-10">
+              <tr><th className="p-3 text-[10px] font-black text-[var(--text-muted)] uppercase">তারিখ</th><th className="p-3 text-[10px] font-black text-[var(--text-muted)] uppercase">সময়</th><th className="p-3 text-[10px] font-black text-[var(--text-muted)] uppercase">ধরন</th><th className="p-3 text-[10px] font-black text-[var(--text-muted)] uppercase">গ্লাস</th><th className="p-3 text-[10px] font-black text-[var(--text-muted)] uppercase">প্রেসক্রিপশন</th><th className="p-3 text-[10px] font-black text-[var(--text-muted)] uppercase text-center">পরিমাণ</th><th className="p-3 text-[10px] font-black text-[var(--text-muted)] uppercase">একক মূল্য</th><th className="p-3 text-[10px] font-black text-[var(--text-muted)] uppercase">মোট</th><th className="p-3 text-[10px] font-black text-[var(--text-muted)] uppercase">গ্রাহক/বিবরণ</th></tr>
             </thead>
             <tbody>
-              {reportData.filteredTxns.length === 0 ? <tr><td colSpan="10" className="p-6 text-center text-[#4a5a70] italic">কোনো লেনদেন নেই</td></tr> :
+              {reportData.filteredTxns.length === 0 ? <tr><td colSpan="10" className="p-6 text-center text-[var(--text-muted)] italic">কোনো লেনদেন নেই</td></tr> :
                 reportData.filteredTxns.map((tx) => {
                   const sm = SM[tx.subtype]||{};
                   return (
-                    <tr key={tx.id} className="border-b border-[#1a2540] hover:bg-[#1a2540]/30 transition-colors bg-[#050810]">
-                      <td className="p-3 font-mono text-[#94a3b8]">{tx.date}</td><td className="p-3 font-mono text-[#64748b]">{tx.time}</td>
+                    <tr key={tx.id} className="border-b border-[var(--border-color)] hover:bg-[var(--bg-nav)] transition-colors bg-[var(--bg-main)]">
+                      <td className="p-3 font-mono text-[var(--text-muted)]">{tx.date}</td><td className="p-3 font-mono text-[var(--text-muted)]">{tx.time}</td>
                       <td className="p-3"><span style={{background:(sm.color||"#fff")+"22", color:sm.color||"#fff"}} className="text-[9px] font-black px-2 py-0.5 rounded border border-current">{sm.icon} {sm.label}</span></td>
-                      <td className="p-3 font-bold text-[#dde6f0]">{tx.glassName}</td>
+                      <td className="p-3 font-bold text-[var(--text-main)]">{tx.glassName}</td>
                       <td className="p-3 font-mono font-bold text-[#22d3ee]"><span className="text-[#f472b6]">S</span>{tx.sph} <span className="text-[#a3e635] ml-1">C</span>{tx.cyl} {tx.add !== "N/A" && <span className="text-[#c084fc] ml-1">A{tx.add}</span>}</td>
                       <td className={`p-3 text-center font-mono font-black text-sm ${tx.direction === "in" ? "text-[#4ade80]" : "text-[#f87171]"}`}>{tx.direction === "in" ? "+" : "-"}{tx.qty}</td>
-                      <td className="p-3 font-mono text-[#64748b]">{tx.unitPrice > 0 ? fmtTk(tx.unitPrice) : "—"}</td>
+                      <td className="p-3 font-mono text-[var(--text-muted)]">{tx.unitPrice > 0 ? fmtTk(tx.unitPrice) : "—"}</td>
                       <td className="p-3 font-mono font-bold text-[#fbbf24]">{tx.totalPrice > 0 ? fmtTk(tx.totalPrice) : "—"}</td>
-                      <td className="p-3 text-[10px] text-[#94a3b8]">{tx.customerName || tx.note || "—"}</td>
+                      <td className="p-3 text-[10px] text-[var(--text-muted)]">{tx.customerName || tx.note || "—"}</td>
                     </tr>
                   )
               })}
@@ -362,9 +362,9 @@ export default function Report({ txns }) {
       </div>
 
       {/* --- A QUANTUM PROJECT BRANDING --- */}
-      <div className="pt-10 border-t border-[#1a2540] flex items-center justify-center gap-4 opacity-40">
+      <div className="pt-10 border-t border-[var(--border-color)] flex items-center justify-center gap-4 opacity-40">
         <OptiLogo className="w-6 h-6 grayscale" />
-        <div className="text-[10px] font-black text-[#4a5568] uppercase tracking-[0.4em]">A <span className="text-[#0ea5e9]">QUANTUM</span> Project</div>
+        <div className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-[0.4em]">A <span className="text-[#0ea5e9]">QUANTUM</span> Project</div>
       </div>
 
     </div>

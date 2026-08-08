@@ -105,17 +105,17 @@ export default function Dashboard({ stock, txns }) {
           {[...Array(7)].map((_, i) => <CardSkeleton key={i} />)}
         </div>
         <div className="grid grid-cols-1 lg:grid-cols-[1fr_300px] gap-6">
-          <div className="bg-[#0f1424] border border-[#1a2540] rounded-2xl p-8 h-[350px]">
+          <div className="bg-[var(--bg-card)] border border-[var(--border-color)] rounded-2xl p-8 h-[350px]">
             <Skeleton className="w-48 h-4 mb-6" />
             <Skeleton className="w-full h-full rounded-xl opacity-20" />
           </div>
-          <div className="bg-[#0f1424] border border-[#1a2540] rounded-2xl p-8 h-[350px] flex flex-col items-center justify-center">
+          <div className="bg-[var(--bg-card)] border border-[var(--border-color)] rounded-2xl p-8 h-[350px] flex flex-col items-center justify-center">
             <Skeleton className="w-32 h-32 rounded-full mb-6" />
             <Skeleton className="w-24 h-4 mb-2" />
             <Skeleton className="w-24 h-4" />
           </div>
         </div>
-        <div className="bg-[#0f1424] border border-[#1a2540] rounded-2xl p-6 h-[400px]">
+        <div className="bg-[var(--bg-card)] border border-[var(--border-color)] rounded-2xl p-6 h-[400px]">
            <Skeleton className="w-full h-full rounded-xl opacity-10" />
         </div>
       </div>
@@ -144,32 +144,32 @@ export default function Dashboard({ stock, txns }) {
           { label: "মোট বিক্রয় আয়", val: fmtTk(stats.todayRev), icon: "💵", color: "#fbbf24", isTk: true },
           { label: "কম স্টক", val: stats.lowStockItems, icon: "⚠️", color: "#fb7185" }
         ].map((c, i) => (
-          <div key={i} className="bg-[#0f1424] border border-[#1a2540] rounded-xl p-4 flex flex-col justify-between shadow-lg relative overflow-hidden group hover:border-[#1a3a5c] transition-colors">
+          <div key={i} className="bg-[var(--bg-card)] border border-[var(--border-color)] rounded-xl p-4 flex flex-col justify-between shadow-lg relative overflow-hidden group hover:border-[var(--text-muted)] transition-colors">
             <div className="flex justify-between items-start mb-2">
               <div className="text-xl opacity-80 group-hover:scale-110 transition-transform">{c.icon}</div>
-              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-white/5 to-transparent absolute -top-2 -right-2"></div>
+              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[var(--text-main)]/5 to-transparent absolute -top-2 -right-2"></div>
             </div>
             <div>
               <div className={`font-black ${c.isTk ? "text-lg" : "text-3xl"} font-mono`} style={{color: c.color}}>{c.val}</div>
-              <div className="text-[9px] text-[#4a5a70] uppercase font-bold tracking-widest mt-1">{c.label}</div>
+              <div className="text-[9px] text-[var(--text-muted)] uppercase font-bold tracking-widest mt-1">{c.label}</div>
             </div>
           </div>
         ))}
       </div>
 
       {/* --- ROW 2: GLASS TYPE INVENTORY --- */}
-      <div className="bg-[#0f1424] border border-[#1a2540] rounded-2xl p-4 shadow-xl">
-        <h3 className="text-[10px] text-[#4a5a70] uppercase font-black tracking-widest mb-3 flex items-center gap-2"><span>◈</span> গ্লাস টাইপ অনুযায়ী মজুদ</h3>
+      <div className="bg-[var(--bg-card)] border border-[var(--border-color)] rounded-2xl p-4 shadow-xl">
+        <h3 className="text-[10px] text-[var(--text-muted)] uppercase font-black tracking-widest mb-3 flex items-center gap-2"><span>◈</span> গ্লাস টাইপ অনুযায়ী মজুদ</h3>
         <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-3">
           {stats.glassStats.map(g => (
-            <div key={g.id} className="bg-[#050810] border border-[#1a2540] rounded-xl p-3 flex flex-col relative overflow-hidden">
+            <div key={g.id} className="bg-[var(--bg-main)] border border-[var(--border-color)] rounded-xl p-3 flex flex-col relative overflow-hidden">
               <div className="absolute top-0 left-0 right-0 h-1" style={{backgroundColor: g.accent}}></div>
               <div className="flex justify-between items-center mb-4 mt-1">
-                <div className="text-[11px] font-black text-[#dde6f0]">{g.name} <span className="text-[8px] bg-[#1a2540] px-1 rounded ml-1 text-white">{g.tag}</span></div>
+                <div className="text-[11px] font-black text-[var(--text-main)]">{g.name} <span className="text-[8px] bg-[var(--bg-card)] border border-[var(--border-color)] px-1 rounded ml-1 text-[var(--text-main)]">{g.tag}</span></div>
               </div>
               <div>
                 <div className="text-2xl font-black font-mono" style={{color: g.accent}}>{g.qty}</div>
-                <div className="text-[9px] text-[#4a5a70] font-bold">{g.combos} কম্বিনেশন</div>
+                <div className="text-[9px] text-[var(--text-muted)] font-bold">{g.combos} কম্বিনেশন</div>
               </div>
             </div>
           ))}
@@ -178,11 +178,11 @@ export default function Dashboard({ stock, txns }) {
 
       {/* --- ROW 3: CHARTS SECTION --- */}
       <div className="grid grid-cols-1 lg:grid-cols-[1fr_300px] gap-6">
-        <div className="bg-[#0f1424] border border-[#1a2540] rounded-2xl p-5 shadow-xl flex flex-col">
-          <h3 className="text-xs font-black text-[#dde6f0] mb-1 flex items-center gap-2"><span>📈</span> Monthly Sales vs Target (BDT)</h3>
-          <p className="text-[9px] text-[#4a5a70] mb-6">গত ১২ মাসের মাসিক বিক্রয় ও লক্ষ্যমাত্রা</p>
-          <div className="flex-1 relative min-h-[200px] border-b border-l border-[#1a2540] flex items-end pt-10">
-            <div className="absolute left-[-30px] bottom-0 h-full flex flex-col justify-between text-[8px] text-[#4a5a70] font-mono pb-6">
+        <div className="bg-[var(--bg-card)] border border-[var(--border-color)] rounded-2xl p-5 shadow-xl flex flex-col">
+          <h3 className="text-xs font-black text-[var(--text-main)] mb-1 flex items-center gap-2"><span>📈</span> Monthly Sales vs Target (BDT)</h3>
+          <p className="text-[9px] text-[var(--text-muted)] mb-6">গত ১২ মাসের মাসিক বিক্রয় ও লক্ষ্যমাত্রা</p>
+          <div className="flex-1 relative min-h-[200px] border-b border-l border-[var(--border-color)] flex items-end pt-10">
+            <div className="absolute left-[-30px] bottom-0 h-full flex flex-col justify-between text-[8px] text-[var(--text-muted)] font-mono pb-6">
               <span>3K</span><span>2K</span><span>1K</span><span>0K</span>
             </div>
             <svg viewBox="0 0 1000 200" preserveAspectRatio="none" className="w-full h-full overflow-visible">
@@ -195,43 +195,43 @@ export default function Dashboard({ stock, txns }) {
               <polyline points="0,150 1000,80" fill="none" stroke="#4ade80" strokeWidth="2" strokeDasharray="5,5" opacity="0.5" />
               <polygon points="0,195 850,195 980,40 1000,40 1000,200 0,200" fill="url(#lineGrad)" />
               <polyline points="0,195 850,195 980,40" fill="none" stroke="#22d3ee" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
-              <circle cx="980" cy="40" r="5" fill="#0f1424" stroke="#22d3ee" strokeWidth="3" />
+              <circle cx="980" cy="40" r="5" fill="var(--bg-card)" stroke="#22d3ee" strokeWidth="3" />
             </svg>
-            <div className="absolute bottom-[-25px] w-full flex justify-between text-[9px] text-[#4a5a70] font-mono px-2">
+            <div className="absolute bottom-[-25px] w-full flex justify-between text-[9px] text-[var(--text-muted)] font-mono px-2">
               <span>Jan</span><span>Feb</span><span>Mar</span><span>Apr</span><span>May</span><span>Jun</span><span>Jul</span><span>Aug</span><span>Sep</span><span>Oct</span><span>Nov</span><span className="text-[#22d3ee] font-bold">Dec</span>
             </div>
           </div>
           <div className="mt-8 flex gap-4 text-[9px] font-bold">
-            <div className="flex items-center gap-1"><span className="w-3 h-0.5 bg-[#22d3ee]"></span> <span className="text-[#dde6f0]">মাসিক বিক্রয়</span></div>
-            <div className="flex items-center gap-1"><span className="w-3 h-0.5 bg-[#4ade80]" style={{borderBottom:"1px dashed #000"}}></span> <span className="text-[#4ade80]">লক্ষ্যমাত্রা</span></div>
+            <div className="flex items-center gap-1"><span className="w-3 h-0.5 bg-[#22d3ee]"></span> <span className="text-[var(--text-main)]">মাসিক বিক্রয়</span></div>
+            <div className="flex items-center gap-1"><span className="w-3 h-0.5 bg-[#4ade80]" style={{borderBottom:"1px dashed var(--text-main)"}}></span> <span className="text-[#4ade80]">লক্ষ্যমাত্রা</span></div>
           </div>
         </div>
 
-        <div className="bg-[#0f1424] border border-[#1a2540] rounded-2xl p-5 shadow-xl flex flex-col">
-          <h3 className="text-[10px] font-black text-[#4a5a70] uppercase tracking-widest mb-4 flex items-center gap-2"><span>◉</span> Stock Status</h3>
+        <div className="bg-[var(--bg-card)] border border-[var(--border-color)] rounded-2xl p-5 shadow-xl flex flex-col">
+          <h3 className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-widest mb-4 flex items-center gap-2"><span>◉</span> Stock Status</h3>
           <div className="flex-1 flex flex-col items-center justify-center relative mb-6">
             <svg width="140" height="140" viewBox="0 0 100 100" className="transform -rotate-90">
-              <circle cx="50" cy="50" r={radius} fill="transparent" stroke="#1a2540" strokeWidth="12" />
+              <circle cx="50" cy="50" r={radius} fill="transparent" stroke="var(--border-color)" strokeWidth="12" />
               <circle cx="50" cy="50" r={radius} fill="transparent" stroke="#4ade80" strokeWidth="12" strokeDasharray={`${strokeInStock} ${circumference}`} strokeDashoffset="0" />
               <circle cx="50" cy="50" r={radius} fill="transparent" stroke="#fbbf24" strokeWidth="12" strokeDasharray={`${strokeLowStock} ${circumference}`} strokeDashoffset={-strokeInStock} />
               <circle cx="50" cy="50" r={radius} fill="transparent" stroke="#f87171" strokeWidth="12" strokeDasharray={`${strokeOutStock} ${circumference}`} strokeDashoffset={-(strokeInStock + strokeLowStock)} />
             </svg>
             <div className="absolute inset-0 flex flex-col items-center justify-center rounded-full">
-              <div className="text-2xl font-black text-white">{totalItems}</div>
-              <div className="text-[6px] text-[#4a5a70] uppercase font-bold tracking-widest mt-1 text-center leading-tight">মোট আইটেম</div>
+              <div className="text-2xl font-black text-[var(--text-main)]">{totalItems}</div>
+              <div className="text-[6px] text-[var(--text-muted)] uppercase font-bold tracking-widest mt-1 text-center leading-tight">মোট আইটেম</div>
             </div>
           </div>
           <div className="space-y-2">
-            <div className="flex justify-between items-center bg-[#050810] border border-[#1a2540] p-2 rounded-lg">
-              <div className="flex items-center gap-2 text-[10px] text-[#dde6f0] font-bold"><span className="w-2 h-2 rounded-full bg-[#4ade80]"></span> In Stock</div>
+            <div className="flex justify-between items-center bg-[var(--bg-main)] border border-[var(--border-color)] p-2 rounded-lg">
+              <div className="flex items-center gap-2 text-[10px] text-[var(--text-main)] font-bold"><span className="w-2 h-2 rounded-full bg-[#4ade80]"></span> In Stock</div>
               <div className="text-xs font-mono font-black text-[#4ade80]">{stats.inStockItems}</div>
             </div>
-            <div className="flex justify-between items-center bg-[#050810] border border-[#1a2540] p-2 rounded-lg">
-              <div className="flex items-center gap-2 text-[10px] text-[#dde6f0] font-bold"><span className="w-2 h-2 rounded-full bg-[#fbbf24]"></span> Low Stock</div>
+            <div className="flex justify-between items-center bg-[var(--bg-main)] border border-[var(--border-color)] p-2 rounded-lg">
+              <div className="flex items-center gap-2 text-[10px] text-[var(--text-main)] font-bold"><span className="w-2 h-2 rounded-full bg-[#fbbf24]"></span> Low Stock</div>
               <div className="text-xs font-mono font-black text-[#fbbf24]">{stats.lowStockItems}</div>
             </div>
-            <div className="flex justify-between items-center bg-[#050810] border border-[#1a2540] p-2 rounded-lg">
-              <div className="flex items-center gap-2 text-[10px] text-[#dde6f0] font-bold"><span className="w-2 h-2 rounded-full bg-[#f87171]"></span> Out of Stock</div>
+            <div className="flex justify-between items-center bg-[var(--bg-main)] border border-[var(--border-color)] p-2 rounded-lg">
+              <div className="flex items-center gap-2 text-[10px] text-[var(--text-main)] font-bold"><span className="w-2 h-2 rounded-full bg-[#f87171]"></span> Out of Stock</div>
               <div className="text-xs font-mono font-black text-[#f87171]">{stats.outOfStockItems}</div>
             </div>
           </div>
@@ -240,41 +240,41 @@ export default function Dashboard({ stock, txns }) {
 
       {/* --- ROW 4: ANALYTICS & LISTS --- */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="bg-[#0f1424] border border-[#1a2540] rounded-2xl p-5 shadow-xl">
-          <h3 className="text-[10px] font-black text-[#4a5a70] uppercase tracking-widest mb-6">গ্লাস টাইপ — বিক্রয় আয়</h3>
+        <div className="bg-[var(--bg-card)] border border-[var(--border-color)] rounded-2xl p-5 shadow-xl">
+          <h3 className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-widest mb-6">গ্লাস টাইপ — বিক্রয় আয়</h3>
           <div className="space-y-5">
-            {stats.revBars.length === 0 ? <div className="text-[10px] text-[#4a5a70] italic">তথ্য নেই</div> : stats.revBars.map(bar => (
+            {stats.revBars.length === 0 ? <div className="text-[10px] text-[var(--text-muted)] italic">তথ্য নেই</div> : stats.revBars.map(bar => (
               <div key={bar.id}>
                 <div className="flex justify-between items-end mb-1">
-                  <div className="flex items-center gap-2 text-[10px] font-bold text-[#dde6f0]"><span className="w-1.5 h-1.5 rounded-full" style={{background: bar.accent}}></span> {bar.name}</div>
-                  <div className="text-xs font-black font-mono text-white">{fmtTk(bar.revenue)}</div>
+                  <div className="flex items-center gap-2 text-[10px] font-bold text-[var(--text-main)]"><span className="w-1.5 h-1.5 rounded-full" style={{background: bar.accent}}></span> {bar.name}</div>
+                  <div className="text-xs font-black font-mono text-[var(--text-main)]">{fmtTk(bar.revenue)}</div>
                 </div>
-                <div className="w-full bg-[#050810] rounded-full h-1.5 flex items-center relative">
+                <div className="w-full bg-[var(--bg-main)] rounded-full h-1.5 flex items-center relative">
                   <div className="h-1.5 rounded-full transition-all duration-1000" style={{width: `${bar.percent}%`, backgroundColor: bar.accent}}></div>
-                  <span className="absolute right-0 -bottom-4 text-[7px] text-[#4a5a70] font-mono">{bar.totalPercent.toFixed(1)}%</span>
+                  <span className="absolute right-0 -bottom-4 text-[7px] text-[var(--text-muted)] font-mono">{bar.totalPercent.toFixed(1)}%</span>
                 </div>
               </div>
             ))}
           </div>
         </div>
 
-        <div className="bg-[#0f1424] border border-[#1a2540] rounded-2xl p-5 shadow-xl">
-          <h3 className="text-[10px] font-black text-[#4a5a70] uppercase tracking-widest mb-6">এই মাসের সারাংশ</h3>
+        <div className="bg-[var(--bg-card)] border border-[var(--border-color)] rounded-2xl p-5 shadow-xl">
+          <h3 className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-widest mb-6">এই মাসের সারাংশ</h3>
           <div className="space-y-3">
-            <div className="flex justify-between items-center p-3 border-b border-[#1a2540]">
-              <div className="flex items-center gap-3 text-[11px] text-[#dde6f0] font-bold"><span className="opacity-70">💰</span> বিক্রয় আয়</div>
+            <div className="flex justify-between items-center p-3 border-b border-[var(--border-color)]">
+              <div className="flex items-center gap-3 text-[11px] text-[var(--text-main)] font-bold"><span className="opacity-70">💰</span> বিক্রয় আয়</div>
               <div className="text-sm font-black font-mono text-[#4ade80]">{fmtTk(stats.monthRev)}</div>
             </div>
-            <div className="flex justify-between items-center p-3 border-b border-[#1a2540]">
-              <div className="flex items-center gap-3 text-[11px] text-[#dde6f0] font-bold"><span className="opacity-70">📦</span> বিক্রয় পিস</div>
+            <div className="flex justify-between items-center p-3 border-b border-[var(--border-color)]">
+              <div className="flex items-center gap-3 text-[11px] text-[var(--text-main)] font-bold"><span className="opacity-70">📦</span> বিক্রয় পিস</div>
               <div className="text-sm font-black font-mono text-[#22d3ee]">{stats.monthQty} <span className="text-[9px]">পিস</span></div>
             </div>
-            <div className="flex justify-between items-center p-3 border-b border-[#1a2540]">
-              <div className="flex items-center gap-3 text-[11px] text-[#dde6f0] font-bold"><span className="opacity-70">🛒</span> ক্রয় ব্যয়</div>
+            <div className="flex justify-between items-center p-3 border-b border-[var(--border-color)]">
+              <div className="flex items-center gap-3 text-[11px] text-[var(--text-main)] font-bold"><span className="opacity-70">🛒</span> ক্রয় ব্যয়</div>
               <div className="text-sm font-black font-mono text-[#fb923c]">{fmtTk(stats.monthCost)}</div>
             </div>
             <div className="flex justify-between items-center p-3">
-              <div className="flex items-center gap-3 text-[11px] text-[#dde6f0] font-bold"><span className="opacity-70">📊</span> গড় দৈনিক</div>
+              <div className="flex items-center gap-3 text-[11px] text-[var(--text-main)] font-bold"><span className="opacity-70">📊</span> গড় দৈনিক</div>
               <div className="text-sm font-black font-mono text-[#c084fc]">{fmtTk(stats.dailyAvgRev)}</div>
             </div>
           </div>
@@ -282,22 +282,22 @@ export default function Dashboard({ stock, txns }) {
       </div>
 
       {/* --- ROW 5: RECENT TRANSACTIONS --- */}
-      <div className="bg-[#0f1424] border border-[#1a2540] rounded-2xl p-5 shadow-xl">
-        <h3 className="text-[10px] font-black text-[#4a5a70] uppercase tracking-widest mb-4 flex items-center gap-2"><span>⏱</span> সাম্প্রতিক ১০টি লেনদেন</h3>
+      <div className="bg-[var(--bg-card)] border border-[var(--border-color)] rounded-2xl p-5 shadow-xl">
+        <h3 className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-widest mb-4 flex items-center gap-2"><span>⏱</span> সাম্প্রতিক ১০টি লেনদেন</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {stats.recentTxns.length === 0 ? <div className="text-[10px] text-[#4a5a70] italic p-4">কোনো লেনদেন পাওয়া যায়নি।</div> : stats.recentTxns.map((tx) => (
-            <div key={tx.id} className="bg-[#050810] border border-[#1a3a5c] p-3 rounded-xl flex justify-between items-center hover:border-[#1a2540] transition-colors">
+          {stats.recentTxns.length === 0 ? <div className="text-[10px] text-[var(--text-muted)] italic p-4">কোনো লেনদেন পাওয়া যায়নি।</div> : stats.recentTxns.map((tx) => (
+            <div key={tx.id} className="bg-[var(--bg-main)] border border-[var(--border-color)] p-3 rounded-xl flex justify-between items-center hover:border-[var(--text-muted)] transition-colors">
               <div>
                 <div className="flex items-center gap-2 mb-1">
-                  <span className="text-xs font-bold text-[#dde6f0]">{tx.glassName}</span>
+                  <span className="text-xs font-bold text-[var(--text-main)]">{tx.glassName}</span>
                   <span className={`text-[8px] font-black px-1.5 py-0.5 rounded border ${tx.direction === "in" ? "bg-[#4ade80]/10 text-[#4ade80] border-[#4ade80]/30" : "bg-[#f87171]/10 text-[#f87171] border-[#f87171]/30"}`}>
                     {tx.subtype === "purchase" ? "ক্রয়" : tx.subtype === "import" ? "আমদানি" : tx.subtype === "sale" ? "পাইকারি" : tx.subtype === "use" ? "খুচরা" : "ভাঙা"}
                   </span>
                 </div>
-                <div className="text-[10px] font-mono text-[#4a5568]">
+                <div className="text-[10px] font-mono text-[var(--text-muted)]">
                   <span className="text-[#f472b6]">S</span>{tx.sph} <span className="text-[#a3e635]">C</span>{tx.cyl} {tx.add !== "N/A" && <span className="text-[#c084fc] ml-1">A{tx.add}</span>}
                 </div>
-                <div className="text-[8px] font-mono text-[#4a5568] mt-0.5">◫ {tx.barcode}</div>
+                <div className="text-[8px] font-mono text-[var(--text-muted)] mt-0.5">◫ {tx.barcode}</div>
               </div>
               <div className="text-right">
                 <div className={`font-mono font-black text-sm ${tx.direction === "in" ? "text-[#4ade80]" : "text-[#f87171]"}`}>
@@ -311,9 +311,9 @@ export default function Dashboard({ stock, txns }) {
       </div>
 
       {/* --- A QUANTUM PROJECT BRANDING --- */}
-      <div className="pt-10 border-t border-[#1a2540] flex items-center justify-center gap-4 opacity-40">
+      <div className="pt-10 border-t border-[var(--border-color)] flex items-center justify-center gap-4 opacity-40">
         <OptiLogo className="w-6 h-6 grayscale" />
-        <div className="text-[10px] font-black text-[#4a5568] uppercase tracking-[0.4em]">
+        <div className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-[0.4em]">
           A <span className="text-[#0ea5e9]">QUANTUM</span> Project
         </div>
       </div>

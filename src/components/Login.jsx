@@ -41,34 +41,34 @@ export default function Login({ onLogin }) {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[#050810] relative overflow-hidden font-sans">
+    <div className="min-h-screen flex items-center justify-center bg-[var(--bg-main)] relative overflow-hidden font-sans transition-colors duration-300">
       
       {/* --- QUANTUM BACKGROUND ANIMATION --- */}
       <div className="absolute inset-0 z-0 pointer-events-none">
         <div className="absolute top-[10%] left-[20%] w-[500px] h-[500px] bg-[#0ea5e9] rounded-full blur-[120px] opacity-[0.07] animate-drift-slow"></div>
         <div className="absolute bottom-[10%] right-[20%] w-[600px] h-[600px] bg-[#c084fc] rounded-full blur-[150px] opacity-[0.05] animate-drift-reverse"></div>
-        <div className="absolute inset-0 opacity-[0.02]" style={{ backgroundImage: `linear-gradient(#dde6f0 1px, transparent 1px), linear-gradient(90deg, #dde6f0 1px, transparent 1px)`, backgroundSize: '40px 40px' }}></div>
+        <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: `linear-gradient(var(--text-main) 1px, transparent 1px), linear-gradient(90deg, var(--text-main) 1px, transparent 1px)`, backgroundSize: '40px 40px' }}></div>
       </div>
 
       {/* --- LOGIN CARD --- */}
-      <div className="group bg-[#0a0e1a]/80 backdrop-blur-2xl border border-[#1a2540] p-10 rounded-[2.5rem] shadow-[0_25px_80px_-15px_rgba(0,0,0,0.7)] w-full max-w-md z-10 animate-in zoom-in-95 duration-700 relative overflow-hidden">
+      <div className="group bg-[var(--bg-card)]/90 backdrop-blur-2xl border border-[var(--border-color)] p-10 rounded-[2.5rem] shadow-[0_25px_80px_-15px_rgba(0,0,0,0.15)] w-full max-w-md z-10 animate-in zoom-in-95 duration-700 relative overflow-hidden transition-all">
         
-        {/* ✨ NEW: TOP RIGHT INFO ICON & TOOLTIP */}
+        {/* TOP RIGHT INFO ICON & TOOLTIP */}
         <div className="absolute top-6 right-6 z-20">
           <div className="relative flex items-center justify-center group/info">
             {/* The Icon */}
-            <div className="w-6 h-6 rounded-full border border-[#1a2540] text-[#4a5a70] flex items-center justify-center text-[10px] font-black cursor-help transition-all group-hover/info:border-[#0ea5e9] group-hover/info:text-[#0ea5e9] bg-[#050810]">
+            <div className="w-6 h-6 rounded-full border border-[var(--border-color)] text-[var(--text-muted)] flex items-center justify-center text-[10px] font-black cursor-help transition-all group-hover/info:border-[#0ea5e9] group-hover/info:text-[#0ea5e9] bg-[var(--bg-main)]">
               i
             </div>
             
             {/* The Tooltip Card */}
-            <div className="absolute top-full right-0 mt-3 w-48 p-4 bg-[#0f172a] border border-[#1e293b] rounded-2xl shadow-2xl opacity-0 scale-95 translate-y-2 pointer-events-none group-hover/info:opacity-100 group-hover/info:scale-100 group-hover/info:translate-y-0 transition-all duration-300 backdrop-blur-xl">
+            <div className="absolute top-full right-0 mt-3 w-48 p-4 bg-[var(--bg-card)] border border-[var(--border-color)] rounded-2xl shadow-2xl opacity-0 scale-95 translate-y-2 pointer-events-none group-hover/info:opacity-100 group-hover/info:scale-100 group-hover/info:translate-y-0 transition-all duration-300 backdrop-blur-xl">
                <div className="text-[10px] font-black text-[#0ea5e9] uppercase tracking-widest mb-1">About Us</div>
-               <div className="text-xs font-bold text-[#dde6f0] leading-relaxed">
+               <div className="text-xs font-bold text-[var(--text-main)] leading-relaxed">
                  QUANTUM is a specialized industrial software lab.
                </div>
                {/* Tiny Arrow */}
-               <div className="absolute -top-1 right-2 w-2 h-2 bg-[#0f172a] border-t border-l border-[#1e293b] rotate-45"></div>
+               <div className="absolute -top-1 right-2 w-2 h-2 bg-[var(--bg-card)] border-t border-l border-[var(--border-color)] rotate-45"></div>
             </div>
           </div>
         </div>
@@ -79,10 +79,10 @@ export default function Login({ onLogin }) {
              <div className="absolute inset-0 bg-[#0ea5e9] blur-2xl opacity-20 animate-pulse"></div>
              <OptiLogo className="w-16 h-16 relative" />
           </div>
-          <h1 className="text-3xl font-black text-[#e8f4ff] tracking-tighter uppercase">
+          <h1 className="text-3xl font-black text-[var(--text-main)] tracking-tighter uppercase">
             OptiStock <span className="text-[#0ea5e9]">PRO</span>
           </h1>
-          <p className="text-[10px] text-[#4a5a70] uppercase font-black tracking-[0.3em] mt-2">
+          <p className="text-[10px] text-[var(--text-muted)] uppercase font-black tracking-[0.3em] mt-2">
             Secure Access Portal
           </p>
         </div>
@@ -90,28 +90,28 @@ export default function Login({ onLogin }) {
         {/* Login Form */}
         <form onSubmit={handleLogin} className="space-y-6">
           <div>
-            <label className="block text-[10px] text-[#4a5a70] uppercase tracking-widest font-black mb-2 ml-1">
+            <label className="block text-[10px] text-[var(--text-muted)] uppercase tracking-widest font-black mb-2 ml-1">
               ইউজারনেম (Username)
             </label>
             <input 
               type="text" 
               value={username} 
               onChange={(e) => setUsername(e.target.value)}
-              className="w-full bg-[#050810]/50 border border-[#1a2540] text-[#dde6f0] px-5 py-4 rounded-2xl focus:outline-none focus:border-[#0ea5e9] focus:ring-1 focus:ring-[#0ea5e9]/20 transition-all placeholder:opacity-20 text-sm"
+              className="w-full bg-[var(--bg-main)] border border-[var(--border-color)] text-[var(--text-main)] px-5 py-4 rounded-2xl focus:outline-none focus:border-[#0ea5e9] focus:ring-1 focus:ring-[#0ea5e9]/25 transition-all placeholder:opacity-30 text-sm"
               placeholder="e.g. admin"
               required
             />
           </div>
 
           <div>
-            <label className="block text-[10px] text-[#4a5a70] uppercase tracking-widest font-black mb-2 ml-1">
+            <label className="block text-[10px] text-[var(--text-muted)] uppercase tracking-widest font-black mb-2 ml-1">
               পাসওয়ার্ড (Password)
             </label>
             <input 
               type="password" 
               value={password} 
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full bg-[#050810]/50 border border-[#1a2540] text-[#dde6f0] px-5 py-4 rounded-2xl focus:outline-none focus:border-[#0ea5e9] focus:ring-1 focus:ring-[#0ea5e9]/20 transition-all placeholder:opacity-20 text-sm"
+              className="w-full bg-[var(--bg-main)] border border-[var(--border-color)] text-[var(--text-main)] px-5 py-4 rounded-2xl focus:outline-none focus:border-[#0ea5e9] focus:ring-1 focus:ring-[#0ea5e9]/25 transition-all placeholder:opacity-30 text-sm"
               placeholder="••••••••"
               required
             />
@@ -122,7 +122,7 @@ export default function Login({ onLogin }) {
             disabled={loading}
             className={`w-full py-4 rounded-2xl font-black uppercase tracking-widest transition-all text-xs text-white shadow-xl active:scale-95
               ${loading 
-                ? 'bg-[#1a2540] text-[#4a5a70] cursor-not-allowed' 
+                ? 'bg-[var(--border-color)] text-[var(--text-muted)] cursor-not-allowed' 
                 : 'bg-gradient-to-r from-[#0284c7] to-[#0ea5e9] hover:shadow-[#0ea5e9]/20 hover:brightness-110'
               }`}
           >
@@ -130,8 +130,8 @@ export default function Login({ onLogin }) {
           </button>
         </form>
 
-        <div className="mt-12 pt-6 border-t border-[#1a2540]/50 text-center">
-          <div className="text-[10px] text-[#4a5568] font-black tracking-[0.4em] uppercase">
+        <div className="mt-12 pt-6 border-t border-[var(--border-color)] text-center">
+          <div className="text-[10px] text-[var(--text-muted)] font-black tracking-[0.4em] uppercase">
             A <span className="text-[#0ea5e9]">QUANTUM</span> Project
           </div>
         </div>

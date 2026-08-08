@@ -16,8 +16,9 @@ const PERMISSIONS = [
   { id: "report", label: "রিপোর্ট (Reports)", icon: "◎" }
 ];
 
-const inp = { width: "100%", padding: "12px 14px", borderRadius: 10, border: "1px solid #1a2540", background: "#050810", color: "#dde6f0", fontSize: 13, outline: "none", transition: "all 0.2s" };
-const lbl = { fontSize: 10, color: "#4a5a70", display: "block", marginBottom: 6, textTransform: "uppercase", letterSpacing: ".7px", fontWeight: 900 };
+// 🚀 UPDATED: Inputs now use dynamic CSS variables
+const inp = { width: "100%", padding: "12px 14px", borderRadius: 10, border: "1px solid var(--border-color)", background: "var(--bg-main)", color: "var(--text-main)", fontSize: 13, outline: "none", transition: "all 0.2s" };
+const lbl = { fontSize: 10, color: "var(--text-muted)", display: "block", marginBottom: 6, textTransform: "uppercase", letterSpacing: ".7px", fontWeight: 900 };
 
 export default function AdminPanel({ authUser }) {
   const toast = useToast(); 
@@ -26,7 +27,7 @@ export default function AdminPanel({ authUser }) {
   const [editPass, setEditPass] = useState({ username: null, val: "" });
   const [loading, setLoading] = useState(true);
 
-  // 🚀 RESET DB STATE
+  // RESET DB STATE
   const [showResetModal, setShowResetModal] = useState(false);
   const [resetPass, setResetPass] = useState("");
   const [isResetting, setIsResetting] = useState(false);
@@ -211,7 +212,7 @@ export default function AdminPanel({ authUser }) {
     return (
       <div className="animate-in fade-in zoom-in-95 duration-500 pb-10 flex flex-col gap-10">
         <div className="grid grid-cols-1 lg:grid-cols-[1fr_450px] gap-8">
-          <div className="bg-[#0f1424] border border-[#1a2540] rounded-2xl p-6 shadow-2xl h-fit">
+          <div className="bg-[var(--bg-card)] border border-[var(--border-color)] rounded-2xl p-6 shadow-2xl h-fit">
             <Skeleton className="h-6 w-64 mb-8 opacity-20 rounded" />
             <div className="grid grid-cols-2 gap-6 mb-6">
               <Skeleton className="h-12 w-full opacity-10 rounded-xl" />
@@ -220,7 +221,7 @@ export default function AdminPanel({ authUser }) {
             <Skeleton className="h-32 w-full opacity-10 rounded-xl mb-6" />
             <Skeleton className="h-14 w-full opacity-20 rounded-xl" />
           </div>
-          <div className="bg-[#0f1424] border border-[#1a2540] rounded-2xl p-6 shadow-2xl h-[750px]">
+          <div className="bg-[var(--bg-card)] border border-[var(--border-color)] rounded-2xl p-6 shadow-2xl h-[750px]">
             <Skeleton className="h-6 w-40 mb-6 opacity-20 rounded" />
             <div className="space-y-4">
               {[...Array(6)].map((_, i) => <Skeleton key={i} className="h-24 w-full opacity-10 rounded-xl" />)}
@@ -239,7 +240,7 @@ export default function AdminPanel({ authUser }) {
         <div className="flex flex-col gap-8">
           
           {/* USER CREATION FORM */}
-          <div className="bg-[#0f1424] border border-[#1a2540] rounded-2xl p-8 shadow-2xl">
+          <div className="bg-[var(--bg-card)] border border-[var(--border-color)] rounded-2xl p-8 shadow-2xl">
             <h2 className="text-lg font-black text-[#0ea5e9] mb-8 flex items-center gap-2"><span>⚙️</span> নতুন এমপ্লয়ি অ্যাকাউন্ট তৈরি করুন</h2>
             
             <form onSubmit={handleCreateUser}>
@@ -266,13 +267,13 @@ export default function AdminPanel({ authUser }) {
               </div>
 
               <div className={`transition-all duration-500 overflow-hidden ${form.role === "Admin" ? "max-h-0 opacity-0" : "max-h-[500px] opacity-100"}`}>
-                <div className="p-5 bg-[#050810] border border-[#1a2540] rounded-2xl mb-8">
+                <div className="p-5 bg-[var(--bg-main)] border border-[var(--border-color)] rounded-2xl mb-8">
                   <label style={lbl}>মডিউল পারমিশন</label>
                   <div className="grid grid-cols-2 gap-3 mt-4">
                     {PERMISSIONS.map(p => (
-                      <label key={p.id} className={`flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-all active:scale-95 ${form.allowedTabs.includes(p.id) ? "bg-[#0ea5e9]/10 border-[#0ea5e9]/50 shadow-[0_0_10px_rgba(14,165,233,0.1)]" : "bg-[#0a0e1a] border-[#1a2540] hover:border-[#4a5a70]"}`}>
+                      <label key={p.id} className={`flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-all active:scale-95 ${form.allowedTabs.includes(p.id) ? "bg-[#0ea5e9]/10 border-[#0ea5e9]/50 shadow-[0_0_10px_rgba(14,165,233,0.1)]" : "bg-[var(--bg-nav)] border-[var(--border-color)] hover:border-[var(--text-muted)]"}`}>
                         <input type="checkbox" checked={form.allowedTabs.includes(p.id)} onChange={() => handleCheckbox(p.id)} className="w-4 h-4 accent-[#0ea5e9] cursor-pointer" />
-                        <span className={`text-xs font-black ${form.allowedTabs.includes(p.id) ? "text-[#0ea5e9]" : "text-[#94a3b8]"}`}>{p.icon} {p.label.split(' ')[0]}</span>
+                        <span className={`text-xs font-black ${form.allowedTabs.includes(p.id) ? "text-[#0ea5e9]" : "text-[var(--text-muted)]"}`}>{p.icon} {p.label.split(' ')[0]}</span>
                       </label>
                     ))}
                   </div>
@@ -286,12 +287,12 @@ export default function AdminPanel({ authUser }) {
           </div>
 
           {/* DANGER ZONE - DB RESET */}
-          <div className="bg-[#0f1424] border border-[#dc2626]/30 rounded-2xl p-8 shadow-2xl relative overflow-hidden">
+          <div className="bg-[var(--bg-card)] border border-[#dc2626]/30 rounded-2xl p-8 shadow-2xl relative overflow-hidden">
             {/* Subtle red glow in background */}
             <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-b from-[#dc2626]/5 to-transparent pointer-events-none"></div>
             
             <h2 className="text-lg font-black text-[#f87171] mb-2 flex items-center gap-2 relative z-10"><span>⚠️</span> ডেঞ্জার জোন (Danger Zone)</h2>
-            <p className="text-xs text-[#94a3b8] mb-6 relative z-10">স্টক এবং লেনদেনের সকল রেকর্ড মুছে ফেলতে নিচের অপশনটি ব্যবহার করুন। এই কাজ করার পর ডাটা আর ফেরত পাওয়া যাবে না।</p>
+            <p className="text-xs text-[var(--text-muted)] mb-6 relative z-10">স্টক এবং লেনদেনের সকল রেকর্ড মুছে ফেলতে নিচের অপশনটি ব্যবহার করুন। এই কাজ করার পর ডাটা আর ফেরত পাওয়া যাবে না।</p>
             
             <button 
               onClick={() => setShowResetModal(true)} 
@@ -304,34 +305,34 @@ export default function AdminPanel({ authUser }) {
         </div>
 
         {/* RIGHT: LIST */}
-        <div className="bg-[#0f1424] border border-[#1a2540] rounded-2xl p-6 shadow-2xl flex flex-col h-[750px]">
-          <div className="flex justify-between items-center mb-6 border-b border-[#1a2540] pb-4">
-            <h3 className="text-sm font-black text-[#e8f4ff] uppercase tracking-widest">👥 এমপ্লয়ি ডিরেক্টরি</h3>
-            <span className="text-[10px] bg-[#1a2540] text-[#dde6f0] px-3 py-1.5 rounded-full font-black shadow-inner">Total: {users.length}</span>
+        <div className="bg-[var(--bg-card)] border border-[var(--border-color)] rounded-2xl p-6 shadow-2xl flex flex-col h-[750px]">
+          <div className="flex justify-between items-center mb-6 border-b border-[var(--border-color)] pb-4">
+            <h3 className="text-sm font-black text-[var(--text-main)] uppercase tracking-widest">👥 এমপ্লয়ি ডিরেক্টরি</h3>
+            <span className="text-[10px] bg-[var(--border-color)] text-[var(--text-main)] px-3 py-1.5 rounded-full font-black shadow-inner">Total: {users.length}</span>
           </div>
           
           <div className="flex-1 overflow-y-auto space-y-4 custom-scrollbar pr-2">
             {users.map((u) => (
-              <div key={u.username} className="bg-[#060f1e] border border-[#1a3a5c] p-4 rounded-2xl relative group transition-all hover:border-[#0ea5e9]/50 hover:shadow-[0_0_20px_rgba(14,165,233,0.05)]">
+              <div key={u.username} className="bg-[var(--bg-main)] border border-[var(--border-color)] p-4 rounded-2xl relative group transition-all hover:border-[#0ea5e9]/50 hover:shadow-[0_0_20px_rgba(14,165,233,0.05)]">
                 {u.username !== "admin" && (
                   <button onClick={() => handleDeleteUser(u.employeeId, u.name, u.username)} className="absolute top-4 right-4 bg-[#f87171]/10 text-[#f87171] hover:bg-[#f87171] hover:text-white border border-[#f87171]/30 w-8 h-8 rounded-lg flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all active:scale-90">🗑️</button>
                 )}
                 
                 <div className="flex justify-between items-start mb-4 pr-10">
                   <div>
-                    <div className="text-sm font-black text-[#dde6f0]">{u.name}</div>
-                    <div className="text-[10px] text-[#4a5568] font-mono font-bold mt-1">ID: {u.employeeId}</div>
+                    <div className="text-sm font-black text-[var(--text-main)]">{u.name}</div>
+                    <div className="text-[10px] text-[var(--text-muted)] font-mono font-bold mt-1">ID: {u.employeeId}</div>
                   </div>
                   <div className={`px-2.5 py-1 rounded-md text-[9px] font-black border uppercase tracking-wider ${u.role === "Admin" ? "bg-[#c084fc]/10 text-[#c084fc] border-[#c084fc]/30" : "bg-[#4ade80]/10 text-[#4ade80] border-[#4ade80]/30"}`}>{u.role}</div>
                 </div>
                 
-                <div className="bg-[#050810] border border-[#1a2540] rounded-xl p-3 flex flex-col gap-3">
+                <div className="bg-[var(--bg-card)] border border-[var(--border-color)] rounded-xl p-3 flex flex-col gap-3">
                   <div className="flex items-center justify-between text-[11px] font-mono">
-                    <span className="text-[#4a5a70] font-bold">User:</span><span className="text-[#0ea5e9] font-black">@{u.username}</span>
+                    <span className="text-[var(--text-muted)] font-bold">User:</span><span className="text-[#0ea5e9] font-black">@{u.username}</span>
                   </div>
                   
                   <div className="flex items-center justify-between text-[11px] font-mono">
-                    <span className="text-[#4a5a70] font-bold">Pass:</span>
+                    <span className="text-[var(--text-muted)] font-bold">Pass:</span>
                     {editPass.username === u.username ? (
                       <div className="flex items-center gap-2 animate-in fade-in zoom-in duration-200">
                         <input 
@@ -342,7 +343,7 @@ export default function AdminPanel({ authUser }) {
                             if (e.key === 'Enter') handleSavePassword(u.username);
                             if (e.key === 'Escape') setEditPass({username: null, val: ""});
                           }}
-                          className="bg-[#0a0e1a] border border-[#0ea5e9] text-[#dde6f0] px-2 py-1 rounded text-[10px] w-24 outline-none focus:ring-1 focus:ring-[#0ea5e9] shadow-inner"
+                          className="bg-[var(--bg-nav)] border border-[#0ea5e9] text-[var(--text-main)] px-2 py-1 rounded text-[10px] w-24 outline-none focus:ring-1 focus:ring-[#0ea5e9] shadow-inner"
                           placeholder="New Pass..."
                           autoFocus
                         />
@@ -360,11 +361,11 @@ export default function AdminPanel({ authUser }) {
                   </div>
                 </div>
 
-                <div className="pt-3 border-t border-[#1a2540] mt-4">
+                <div className="pt-3 border-t border-[var(--border-color)] mt-4">
                   <div className="flex flex-wrap gap-1.5">
                     {(u.allowedTabs || "").split(',').map(tab => {
                        if(!tab) return null;
-                       return <span key={tab} className="bg-[#1a2540] text-[#c8dff0] px-2 py-0.5 rounded-md text-[9px] font-bold uppercase tracking-wider">{tab}</span>
+                       return <span key={tab} className="bg-[var(--bg-nav)] border border-[var(--border-color)] text-[var(--text-main)] px-2 py-0.5 rounded-md text-[9px] font-bold uppercase tracking-wider">{tab}</span>
                     })}
                   </div>
                 </div>
@@ -375,9 +376,9 @@ export default function AdminPanel({ authUser }) {
       </div>
 
       {/* --- STANDARDIZED A QUANTUM PROJECT BRANDING --- */}
-      <div className="pt-10 border-t border-[#1a2540] flex items-center justify-center gap-4 opacity-40">
+      <div className="pt-10 border-t border-[var(--border-color)] flex items-center justify-center gap-4 opacity-40">
         <OptiLogo className="w-6 h-6 grayscale" />
-        <div className="text-[10px] font-black text-[#4a5568] uppercase tracking-[0.4em]">
+        <div className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-[0.4em]">
           A <span className="text-[#0ea5e9]">QUANTUM</span> Project
         </div>
       </div>
@@ -385,16 +386,16 @@ export default function AdminPanel({ authUser }) {
       {/* 🛑 MODAL: PASSWORD CONFIRMATION FOR RESET 🛑 */}
       {showResetModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in duration-200">
-          <div className="bg-[#0f1424] border border-[#dc2626]/50 rounded-3xl p-8 max-w-md w-full shadow-[0_0_50px_rgba(220,38,38,0.15)] animate-in zoom-in-95 duration-200">
+          <div className="bg-[var(--bg-card)] border border-[#dc2626]/50 rounded-3xl p-8 max-w-md w-full shadow-[0_0_50px_rgba(220,38,38,0.15)] animate-in zoom-in-95 duration-200">
             
             <div className="w-16 h-16 bg-[#dc2626]/10 rounded-full flex items-center justify-center mx-auto mb-6 border border-[#dc2626]/30">
               <span className="text-3xl">⚠️</span>
             </div>
             
             <h3 className="text-xl font-black text-[#f87171] text-center mb-2">সতর্কতা!</h3>
-            <p className="text-[13px] text-[#94a3b8] text-center mb-8 leading-relaxed">
+            <p className="text-[13px] text-[var(--text-muted)] text-center mb-8 leading-relaxed">
               আপনি পুরো সিস্টেমের স্টক এবং ট্রানজেকশন মুছে ফেলার নির্দেশ দিচ্ছেন। 
-              নিশ্চিত করতে <span className="text-[#e8f4ff] font-bold">অ্যাডমিন পাসওয়ার্ড</span> প্রদান করুন।
+              নিশ্চিত করতে <span className="text-[var(--text-main)] font-bold">অ্যাডমিন পাসওয়ার্ড</span> প্রদান করুন।
             </p>
 
             <form onSubmit={handleResetDatabase}>
@@ -406,7 +407,7 @@ export default function AdminPanel({ authUser }) {
                   onChange={(e) => setResetPass(e.target.value)} 
                   autoFocus
                   placeholder="অ্যাডমিন পাসওয়ার্ড টাইপ করুন..."
-                  className="w-full padding-[14px] rounded-xl border border-[#dc2626]/50 bg-[#050810] text-[#dde6f0] p-3 text-sm outline-none focus:border-[#dc2626] focus:ring-2 focus:ring-[#dc2626]/20 transition-all text-center tracking-widest font-mono"
+                  className="w-full padding-[14px] rounded-xl border border-[#dc2626]/50 bg-[var(--bg-main)] text-[var(--text-main)] p-3 text-sm outline-none focus:border-[#dc2626] focus:ring-2 focus:ring-[#dc2626]/20 transition-all text-center tracking-widest font-mono"
                 />
               </div>
 
@@ -414,7 +415,7 @@ export default function AdminPanel({ authUser }) {
                 <button 
                   type="button" 
                   onClick={() => { setShowResetModal(false); setResetPass(""); }} 
-                  className="flex-1 py-3 rounded-xl font-bold uppercase tracking-widest bg-[#1a2540] text-[#c8dff0] hover:bg-[#2a3a5a] transition-all text-xs"
+                  className="flex-1 py-3 rounded-xl font-bold uppercase tracking-widest bg-[var(--border-color)] text-[var(--text-main)] hover:opacity-80 transition-all text-xs"
                 >
                   বাতিল করুন
                 </button>

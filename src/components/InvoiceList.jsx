@@ -53,6 +53,7 @@ export default function InvoiceList({ txns }) {
   }, [txns]);
 
   // --- ORIGINAL WORKING PRINT ENGINE RESTORED ---
+  // (Note: The print CSS uses hardcoded colors so paper prints correctly in both modes)
   const printInvoice = (tx) => {
     const bcProduct = upceSVGString(tx.barcode, 50, true);
     const bcInvoice = upceSVGString(tx.invoiceNo, 50, true);
@@ -206,7 +207,7 @@ export default function InvoiceList({ txns }) {
   if (!sales) {
     return (
       <div className="animate-in fade-in zoom-in-95 duration-500 pb-10">
-        <div className="bg-[#0f1424] border border-[#1a2540] rounded-2xl p-6 shadow-2xl min-h-[600px]">
+        <div className="bg-[var(--bg-card)] border border-[var(--border-color)] rounded-2xl p-6 shadow-2xl min-h-[600px]">
           <Skeleton className="h-8 w-64 mb-8 opacity-20" />
           <div className="space-y-4">
             {[...Array(6)].map((_, i) => <Skeleton key={i} className="h-16 w-full rounded-xl opacity-10" />)}
@@ -218,22 +219,22 @@ export default function InvoiceList({ txns }) {
 
   return (
     <div className="animate-in fade-in zoom-in-95 duration-500 pb-10">
-      <div className="bg-[#0f1424] border border-[#1a2540] rounded-2xl p-6 shadow-2xl min-h-[600px] flex flex-col justify-between">
+      <div className="bg-[var(--bg-card)] border border-[var(--border-color)] rounded-2xl p-6 shadow-2xl min-h-[600px] flex flex-col justify-between">
         
         <div>
           <h2 className="text-lg font-black text-[#22d3ee] mb-6 flex items-center gap-2"><span>🧾</span> ইনভয়েস তালিকা (Sales & Receipts)</h2>
           
           {sales.length === 0 ? (
-            <div className="text-center py-32 border-2 border-dashed border-[#1a2540] rounded-2xl bg-[#060f1e]/50">
+            <div className="text-center py-32 border-2 border-dashed border-[var(--border-color)] rounded-2xl bg-[var(--bg-main)]">
               <div className="text-5xl mb-4 opacity-30">🧾</div>
-              <div className="text-[#c8dff0] font-black text-lg mb-2">কোনো ইনভয়েস পাওয়া যায়নি</div>
-              <div className="text-sm text-[#4a5a70]">স্টক আউট (খুচরা বা পাইকারি) করলে এখানে স্বয়ংক্রিয়ভাবে ইনভয়েস তৈরি হবে।</div>
+              <div className="text-[var(--text-main)] font-black text-lg mb-2">কোনো ইনভয়েস পাওয়া যায়নি</div>
+              <div className="text-sm text-[var(--text-muted)]">স্টক আউট (খুচরা বা পাইকারি) করলে এখানে স্বয়ংক্রিয়ভাবে ইনভয়েস তৈরি হবে।</div>
             </div>
           ) : (
-            <div className="overflow-x-auto border border-[#1a2540] rounded-2xl custom-scrollbar max-h-[600px]">
+            <div className="overflow-x-auto border border-[var(--border-color)] rounded-2xl custom-scrollbar max-h-[600px]">
               <table className="w-full text-left border-collapse">
-                <thead className="sticky top-0 bg-[#0a1526] z-10 shadow-md">
-                  <tr className="border-b-2 border-[#1a3a5c]">
+                <thead className="sticky top-0 bg-[var(--bg-nav)] z-10 shadow-md">
+                  <tr className="border-b-2 border-[var(--border-color)]">
                     <th className="p-4 text-[10px] font-black text-[#22d3ee] uppercase tracking-widest whitespace-nowrap">ইনভয়েস নং</th>
                     <th className="p-4 text-[10px] font-black text-[#22d3ee] uppercase tracking-widest">তারিখ ও সময়</th>
                     <th className="p-4 text-[10px] font-black text-[#22d3ee] uppercase tracking-widest">গ্রাহক</th>
@@ -245,25 +246,25 @@ export default function InvoiceList({ txns }) {
                 </thead>
                 <tbody>
                   {sales.map((tx, i) => (
-                    <tr key={tx.id} className={`border-b border-[#1a2540] hover:bg-[#0f1828] transition-colors ${i%2===0 ? 'bg-transparent' : 'bg-[#050810]'}`}>
-                      <td className="p-4 font-mono text-sm font-bold text-[#c8dff0]">{tx.invoiceNo}</td>
+                    <tr key={tx.id} className={`border-b border-[var(--border-color)] hover:bg-[var(--bg-nav)] transition-colors ${i%2===0 ? 'bg-transparent' : 'bg-[var(--bg-main)]'}`}>
+                      <td className="p-4 font-mono text-sm font-bold text-[var(--text-main)]">{tx.invoiceNo}</td>
                       <td className="p-4">
-                        <div className="text-xs text-[#dde6f0] font-bold">{tx.date}</div>
-                        <div className="text-[10px] text-[#4a5a70]">{tx.time}</div>
+                        <div className="text-xs text-[var(--text-main)] font-bold">{tx.date}</div>
+                        <div className="text-[10px] text-[var(--text-muted)]">{tx.time}</div>
                       </td>
-                      <td className="p-4 text-xs font-bold text-[#c8dff0]">
+                      <td className="p-4 text-xs font-bold text-[var(--text-main)]">
                         {tx.customerName || "সাধারণ গ্রাহক"}
                       </td>
                       <td className="p-4">
-                        <div className="text-xs font-bold text-[#dde6f0]">{tx.glassName}</div>
-                        <div className="text-[10px] font-mono text-[#4a5568] mt-1">
+                        <div className="text-xs font-bold text-[var(--text-main)]">{tx.glassName}</div>
+                        <div className="text-[10px] font-mono text-[var(--text-muted)] mt-1">
                           <span className="text-[#f472b6]">S</span>{tx.sph} <span className="text-[#a3e635] ml-1">C</span>{tx.cyl} {tx.add !== "N/A" && <span className="text-[#c084fc] ml-1">A{tx.add}</span>}
                         </div>
                       </td>
                       <td className="p-4 font-mono font-black text-[#4ade80] text-center text-lg">{tx.qty}</td>
                       <td className="p-4 text-right font-bold text-[#fbbf24] text-sm">{fmtTk(tx.totalPrice || 0)}</td>
                       <td className="p-4 text-center">
-                        <button onClick={() => printInvoice(tx)} className="bg-[#0ea5e9]/10 border border-[#0ea5e9]/30 text-[#0ea5e9] px-4 py-2 rounded-lg text-xs font-bold hover:bg-[#0ea5e9] hover:text-[#0f1424] transition-all cursor-pointer shadow-lg active:scale-95 whitespace-nowrap">
+                        <button onClick={() => printInvoice(tx)} className="bg-[var(--accent)]/10 border border-[var(--accent)]/30 text-[var(--accent)] px-4 py-2 rounded-lg text-xs font-bold hover:bg-[var(--accent)] hover:text-white transition-all cursor-pointer shadow-lg active:scale-95 whitespace-nowrap">
                           🖨️ প্রিন্ট করুন
                         </button>
                       </td>
@@ -276,10 +277,10 @@ export default function InvoiceList({ txns }) {
         </div>
 
         {/* --- STANDARDIZED A QUANTUM PROJECT BRANDING --- */}
-        <div className="pt-10 border-t border-[#1a2540] flex items-center justify-center gap-4 opacity-40 mt-8">
+        <div className="pt-10 border-t border-[var(--border-color)] flex items-center justify-center gap-4 opacity-40 mt-8">
           <OptiLogo className="w-6 h-6 grayscale" />
-          <div className="text-[10px] font-black text-[#4a5568] uppercase tracking-[0.4em]">
-            A <span className="text-[#0ea5e9]">QUANTUM</span> Project
+          <div className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-[0.4em]">
+            A <span className="text-[var(--accent)]">QUANTUM</span> Project
           </div>
         </div>
 

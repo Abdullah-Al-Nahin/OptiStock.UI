@@ -2,8 +2,8 @@
 import React, { useState, useRef } from "react";
 import { useToast } from "./ToastContext"; 
 
-const inp = { width: "100%", padding: "14px 16px", borderRadius: 12, border: "1px solid #1a2540", background: "#050810", color: "#dde6f0", fontSize: 13, outline: "none", transition: "all 0.2s" };
-const lbl = { fontSize: 10, color: "#4a5a70", display: "block", marginBottom: 8, textTransform: "uppercase", letterSpacing: ".7px", fontWeight: 900 };
+const inp = { width: "100%", padding: "14px 16px", borderRadius: 12, border: "1px solid var(--border-color)", background: "var(--bg-main)", color: "var(--text-main)", fontSize: 13, outline: "none", transition: "all 0.2s" };
+const lbl = { fontSize: 10, color: "var(--text-muted)", display: "block", marginBottom: 8, textTransform: "uppercase", letterSpacing: ".7px", fontWeight: 900 };
 
 export default function Feedback() {
   const toast = useToast();
@@ -12,7 +12,7 @@ export default function Feedback() {
   
   // Form State
   const [name, setName] = useState("");
-  const [email, setEmail] = useState(""); // 👈 NEW: Email state
+  const [email, setEmail] = useState(""); 
   const [message, setMessage] = useState("");
   const [file, setFile] = useState(null);
   const [previewUrl, setPreviewUrl] = useState(null);
@@ -41,7 +41,6 @@ export default function Feedback() {
 
   // --- Submit Natively to the Iframe ---
   const handleSubmit = (e) => {
-    // 👈 NEW: Added email to the validation check
     if (!name.trim() || !email.trim() || !message.trim()) {
       e.preventDefault(); 
       toast.warning("নাম, ইমেইল এবং সমস্যার বিবরণ লিখতে হবে!");
@@ -59,7 +58,7 @@ export default function Feedback() {
       setLoading(false);
       setSubmitted(false);
       setName("");
-      setEmail(""); // 👈 NEW: Reset email field
+      setEmail(""); 
       setMessage("");
       removeFile();
     }
@@ -71,16 +70,16 @@ export default function Feedback() {
       {/* 🚀 THE SECRET IFRAME */}
       <iframe name="hidden_iframe" id="hidden_iframe" style={{ display: "none" }} onLoad={handleIframeLoad}></iframe>
 
-      <div className="bg-[#0f1424] border border-[#1a2540] rounded-[2rem] p-10 shadow-2xl w-full max-w-2xl relative overflow-hidden">
+      <div className="bg-[var(--bg-card)] border border-[var(--border-color)] rounded-[2rem] p-10 shadow-2xl w-full max-w-2xl relative overflow-hidden transition-all">
         
         {/* Background Glow */}
         <div className="absolute top-0 right-0 w-64 h-64 bg-[#f43f5e] rounded-full blur-[120px] opacity-[0.05] pointer-events-none"></div>
 
         <div className="text-center mb-10">
-          <h2 className="text-2xl font-black text-[#e8f4ff] mb-2 uppercase tracking-wide">
+          <h2 className="text-2xl font-black text-[var(--text-main)] mb-2 uppercase tracking-wide">
             বাগ রিপোর্ট ও ফিডব্যাক
           </h2>
-          <p className="text-xs text-[#4a5a70] tracking-wider uppercase font-bold">
+          <p className="text-xs text-[var(--text-muted)] tracking-wider uppercase font-bold">
             Direct Line to Quantum Labs
           </p>
         </div>
@@ -114,7 +113,6 @@ export default function Feedback() {
               />
             </div>
 
-            {/* 👈 NEW: Email Input Field */}
             <div>
               <label style={lbl}>আপনার ইমেইল (Email) <span className="text-[#f43f5e]">*</span></label>
               <input 
@@ -148,7 +146,7 @@ export default function Feedback() {
             <label style={lbl}>স্ক্রিনশট (Optional - Up to 5MB)</label>
             
             {previewUrl ? (
-              <div className="relative inline-block border border-[#1a2540] rounded-xl overflow-hidden group shadow-lg">
+              <div className="relative inline-block border border-[var(--border-color)] rounded-xl overflow-hidden group shadow-lg">
                 <img src={previewUrl} alt="Preview" className="h-32 w-auto object-cover opacity-80" />
                 <div className="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all">
                   <button type="button" onClick={removeFile} className="bg-[#f43f5e] text-white px-3 py-1.5 rounded-lg text-xs font-bold active:scale-95 shadow-xl">
@@ -157,14 +155,14 @@ export default function Feedback() {
                 </div>
               </div>
             ) : (
-              <div className="bg-[#050810] border border-dashed border-[#1a2540] rounded-2xl p-6 text-center hover:border-[#0ea5e9]/50 transition-all group">
+              <div className="bg-[var(--bg-main)] border border-dashed border-[var(--border-color)] rounded-2xl p-6 text-center hover:border-[#0ea5e9]/50 transition-all group">
                 <label htmlFor="file-upload" className="cursor-pointer flex flex-col items-center justify-center gap-3 w-full h-full">
-                  <div className="w-12 h-12 rounded-full bg-[#0a0e1a] border border-[#1a2540] flex items-center justify-center group-hover:bg-[#0ea5e9]/10 group-hover:text-[#0ea5e9] transition-all text-xl">
+                  <div className="w-12 h-12 rounded-full bg-[var(--bg-card)] border border-[var(--border-color)] flex items-center justify-center group-hover:bg-[#0ea5e9]/10 group-hover:text-[#0ea5e9] transition-all text-xl">
                     📸
                   </div>
                   <div>
-                    <span className="text-sm font-bold text-[#dde6f0]">ছবি নির্বাচন করুন</span>
-                    <p className="text-[10px] text-[#4a5a70] mt-1">PNG, JPG (Max 5MB)</p>
+                    <span className="text-sm font-bold text-[var(--text-main)]">ছবি নির্বাচন করুন</span>
+                    <p className="text-[10px] text-[var(--text-muted)] mt-1">PNG, JPG (Max 5MB)</p>
                   </div>
                 </label>
               </div>
@@ -186,14 +184,14 @@ export default function Feedback() {
             disabled={loading}
             className={`w-full mt-8 py-4 rounded-2xl font-black uppercase tracking-widest transition-all text-xs text-white shadow-xl
               ${loading 
-                ? 'bg-[#1a2540] text-[#4a5a70] cursor-not-allowed' 
+                ? 'bg-[var(--border-color)] text-[var(--text-muted)] cursor-not-allowed' 
                 : 'bg-gradient-to-r from-[#e11d48] to-[#f43f5e] hover:shadow-[#f43f5e]/20 hover:brightness-110 active:scale-95'
               }`}
           >
             {loading ? "ছবি ও ইমেইল আপলোড হচ্ছে..." : "রিপোর্ট সাবমিট করুন"}
           </button>
 
-          <p className="text-[9px] text-[#4a5568] text-center font-bold uppercase tracking-widest mt-4">
+          <p className="text-[9px] text-[var(--text-muted)] text-center font-bold uppercase tracking-widest mt-4">
             🔒 Uses standard POST protocol to preserve image attachments.
           </p>
         </form>

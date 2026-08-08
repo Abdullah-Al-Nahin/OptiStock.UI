@@ -1,11 +1,47 @@
 @import "tailwindcss";
 
+/* =========================================
+   🚀 LIGHT/DARK MODE THEME ENGINE
+========================================= */
+:root {
+  /* ☀️ LIGHT MODE COLORS */
+  --bg-main: #f1f5f9;      /* Light gray background */
+  --bg-nav: #ffffff;       /* Pure white for headers/tabs */
+  --bg-card: #ffffff;      /* Pure white for cards */
+  --text-main: #0f172a;    /* Very dark gray text */
+  --text-muted: #64748b;   /* Medium gray for subtitles */
+  --border-color: #cbd5e1; /* Light gray borders */
+  --accent: #0ea5e9;       /* OptiStock Cyan */
+}
+
+.dark {
+  /* 🌙 DARK MODE COLORS (Your beautiful original theme) */
+  --bg-main: #050810;
+  --bg-nav: #0a0e1a;
+  --bg-card: #0f1424;
+  --text-main: #dde6f0;
+  --text-muted: #4a5a70;
+  --border-color: #1a2540;
+  --accent: #0ea5e9;
+}
+
+/* =========================================
+   🚀 GLOBAL STYLES
+========================================= */
 body {
-  
   margin: 0;
   padding: 0;
-  background-color: #050810; /* Matches the new app's background */
-  @keyframes toast-slide-in {
+  background-color: var(--bg-main);
+  color: var(--text-main);
+  /* This creates the smooth fade effect when you click the Sun/Moon button */
+  transition: background-color 0.3s ease, color 0.3s ease; 
+}
+
+
+/* =========================================
+   🚀 ANIMATIONS & COMPONENTS
+========================================= */
+@keyframes toast-slide-in {
   0% { transform: translateX(100%) scale(0.9); opacity: 0; }
   70% { transform: translateX(-10px) scale(1.02); }
   100% { transform: translateX(0) scale(1); opacity: 1; }
@@ -14,15 +50,6 @@ body {
 @keyframes skeleton-pulse {
   0%, 100% { opacity: 0.05; }
   50% { opacity: 0.15; }
-}
-
-.animate-skeleton {
-  animation: skeleton-pulse 1.8s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-}
-
-.skeleton-box {
-  background: #dde6f0;
-  border-radius: 12px;
 }
 
 @keyframes progress-shrink {
@@ -38,10 +65,20 @@ body {
   animation: progress-shrink 3.5s linear forwards;
 }
 
+.animate-skeleton {
+  animation: skeleton-pulse 1.8s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+.skeleton-box {
+  background: var(--text-main); /* Now automatically swaps color in light/dark mode! */
+  border-radius: 12px;
+}
+
 /* Glassmorphism for the toast */
 .toast-glass {
-  background: rgba(10, 14, 26, 0.8);
+  background: var(--bg-nav); /* Uses theme background */
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
-}
+  border: 1px solid var(--border-color); /* Added border so it pops in light mode */
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
 }

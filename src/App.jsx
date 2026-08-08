@@ -7,7 +7,7 @@ import { useToast } from "./components/ToastContext";
 import Login from "./components/Login"; 
 import Dashboard from "./components/Dashboard";
 import StockEntry from "./components/StockEntry";
-import PreOrderManager from "./components/PreOrderManager"; // 🚀 NEW PRE-ORDER COMPONENT
+import PreOrderManager from "./components/PreOrderManager"; 
 import Heatmap from "./components/Heatmap";
 import Scanner from "./components/Scanner";
 import InvoiceList from "./components/InvoiceList";
@@ -24,10 +24,10 @@ class ErrorBoundary extends React.Component {
   componentDidCatch(error, errorInfo) { this.setState({ errorInfo }); console.error("Crash:", error, errorInfo); }
   render() {
     if (this.state.hasError) return (
-      <div style={{padding:40,background:"#0a0e1a",color:"#f87171",minHeight:"100vh",fontFamily:"monospace"}}>
+      <div style={{padding:40,background:"var(--bg-card)",color:"#f87171",minHeight:"100vh",fontFamily:"monospace"}}>
         <h2 style={{borderBottom:"1px solid #f8717140", paddingBottom:10}}>⚠️ OPTISTOCK CRASHED!</h2>
         <p style={{fontSize:18, marginTop:20}}><strong>Error:</strong> {this.state.error?.toString()}</p>
-        <pre style={{marginTop:20,background:"#050810",padding:20,borderRadius:8, border:"1px solid #1a2540"}}>{this.state.errorInfo?.componentStack}</pre>
+        <pre style={{marginTop:20,background:"var(--bg-main)",padding:20,borderRadius:8, border:"1px solid var(--border-color)"}}>{this.state.errorInfo?.componentStack}</pre>
         <button onClick={() => window.location.reload()} style={{marginTop: 20, padding: "10px 20px", background: "#f87171", color: "#fff", border: "none", borderRadius: "8px", cursor: "pointer", fontWeight: "bold"}}>রিলোড করুন (Reload)</button>
       </div>
     );
@@ -38,7 +38,7 @@ class ErrorBoundary extends React.Component {
 const ALL_TABS = [
   {id:"dashboard", icon:"◈", label:"ড্যাশবোর্ড"},
   {id:"entry",     icon:"⊕", label:"স্টক এন্ট্রি"},
-  {id:"preorder",  icon:"📦", label:"প্রি-অর্ডার"}, // 🚀 NEW TAB ADDED
+  {id:"preorder",  icon:"📦", label:"প্রি-অর্ডার"},
   {id:"heatmap",   icon:"⊞", label:"হিটম্যাপ"},
   {id:"scanner",   icon:"◫", label:"বারকোড স্ক্যানার"},
   {id:"print",     icon:"🏷️", label:"লেবেল প্রিন্ট"},
@@ -55,6 +55,18 @@ function MainApp({ authUser, onLogout }) {
   const [txns, setTxns] = useState([]);
   const [tab, setTab] = useState(authUser.allowedTabs[0] || "entry"); 
   const [loading, setLoading] = useState(true);
+
+  // 🚀 Theme State Logic
+  const [theme, setTheme] = useState(localStorage.getItem("optistock_theme") || "dark");
+
+  useEffect(() => {
+    if (theme === "dark") {
+      document.documentElement.classList.add("dark");
+    } else {
+      document.documentElement.classList.remove("dark");
+    }
+    localStorage.setItem("optistock_theme", theme);
+  }, [theme]);
 
   // --- 🌐 FETCH CLOUD DATA WITH JWT 🌐 ---
   useEffect(() => {
@@ -100,11 +112,9 @@ function MainApp({ authUser, onLogout }) {
             const cylStr = formatPower(entry.cyl);
             const addStr = entry.add === 0 ? "0.00" : entry.add.toFixed(2);
             
-            // 🚀 THE FIX: Read design directly from DB to preserve "Moon Bifocal" etc on refresh!
             const designStr = entry.design || entry.glassDesign || (entry.add > 0 ? "progressive" : "single_vision");
             const baseKey = makeKey(sphStr, cylStr, addStr, designStr);
             
-            // Append Axis correctly 
             const hasCyl = entry.cyl !== 0;
             const key = hasCyl ? `${baseKey}_ax${entry.axis || 0}` : baseKey;
             
@@ -151,14 +161,14 @@ function MainApp({ authUser, onLogout }) {
   }, [stock, txns]);
 
   return (
-    <div style={{fontFamily:"sans-serif", minHeight:"100vh", background:C.bg0, color:C.txt, overflowX:"hidden", width:"100%"}}>
+    <div style={{fontFamily:"sans-serif", minHeight:"100vh", background:C.bg0, color:C.txt, overflowX:"hidden", width:"100%", transition: "all 0.3s"}}>
       
       {/* GLOBAL HEADER */}
-      <div style={{background:"rgba(10,14,26,0.8)", backdropFilter:"blur(12px)", borderBottom:"1px solid "+C.bdr, padding:"12px 24px", display:"flex", flexWrap:"wrap", alignItems:"center", gap:15, position:"sticky", top:0, zIndex:50}}>
+      <div style={{background: "var(--bg-nav)", borderBottom:"1px solid "+C.bdr, padding:"12px 24px", display:"flex", flexWrap:"wrap", alignItems:"center", gap:15, position:"sticky", top:0, zIndex:50, transition: "all 0.3s"}}>
         <OptiLogo className="w-8 h-8" />
         <div style={{flexGrow: 1}}>
           <div style={{fontSize:18, fontWeight:900, color:C.cyan, letterSpacing:"-0.5px"}}>OptiStock <span style={{fontSize:11, color:C.muted, fontWeight:500}}>PRO v6</span></div>
-          <div style={{fontSize:8, color:"#4a5a70", fontWeight:900, letterSpacing:"2px", textTransform:"uppercase"}}>
+          <div style={{fontSize:8, color:C.muted, fontWeight:900, letterSpacing:"2px", textTransform:"uppercase"}}>
              A <span style={{color:C.cyan}}>QUANTUM</span> Project
           </div>
         </div>
@@ -182,24 +192,49 @@ function MainApp({ authUser, onLogout }) {
             </div>
           </div>
 
-          <div style={{borderLeft:"1px solid #1a2540", paddingLeft:15, display:"flex", alignItems:"center", gap:12}}>
-            <div style={{textAlign:"right"}}>
-              <div style={{fontSize:11, fontWeight:900, color:"#fff"}}>{authUser.name}</div>
+          <div style={{borderLeft:"1px solid "+C.bdr, paddingLeft:15, display:"flex", alignItems:"center", gap:12}}>
+            
+            {/* SUN/MOON THEME TOGGLE BUTTON */}
+            <button 
+              onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')} 
+              style={{
+                background: theme === 'dark' ? '#1a2540' : '#f8fafc', 
+                border: "1px solid "+C.bdr, 
+                color: theme === 'dark' ? '#fde047' : '#0f172a', 
+                padding: "8px 12px", 
+                borderRadius: 20, 
+                cursor: "pointer", 
+                fontSize: 14, 
+                fontWeight: "bold", 
+                display: "flex", 
+                alignItems: "center", 
+                gap: 6,
+                transition: "all 0.3s",
+                boxShadow: "0 2px 5px rgba(0,0,0,0.1)"
+              }}
+              title="Toggle Theme"
+            >
+              {theme === 'dark' ? '☀️ Light' : '🌙 Dark'}
+            </button>
+
+            <div style={{textAlign:"right", marginLeft: 10}}>
+              <div style={{fontSize:11, fontWeight:900, color:C.txt}}>{authUser.name}</div>
               <div style={{fontSize:8, color: authUser.role === "Admin" ? C.purple : C.green, textTransform:"uppercase", fontWeight:900, letterSpacing:0.5}}>{authUser.role}</div>
             </div>
-            <button onClick={onLogout} style={{background:"#1a2540", border:"1px solid #f8717133", color:"#f87171", padding:"6px 10px", borderRadius:8, cursor:"pointer", fontSize:10, fontWeight:"bold", transition:"all 0.2s"}} onMouseOver={(e)=>e.target.style.background="#f8717111"} onMouseOut={(e)=>e.target.style.background="#1a2540"}>
+            
+            <button onClick={onLogout} style={{background:"transparent", border:"1px solid #f8717133", color:"#f87171", padding:"6px 10px", borderRadius:8, cursor:"pointer", fontSize:10, fontWeight:"bold", transition:"all 0.2s"}} onMouseOver={(e)=>e.target.style.background="#f8717111"} onMouseOut={(e)=>e.target.style.background="transparent"}>
               লগআউট 🚪
             </button>
           </div>
         </div>
       </div>
 
-      {/* NAVIGATION TABS */}
-      <div className="custom-scrollbar" style={{display:"flex", background:C.bg1, borderBottom:"1px solid "+C.bdr, padding:"0 20px", overflowX:"auto", whiteSpace:"nowrap", WebkitOverflowScrolling:"touch", gap:5}}>
+      {/* NAVIGATION TABS (🚀 SHARPER CONTRAST & LOWER INACTIVE OPACITY) */}
+      <div className="custom-scrollbar" style={{display:"flex", background:"var(--bg-nav)", borderBottom:"1px solid "+C.bdr, padding:"0 20px", overflowX:"auto", whiteSpace:"nowrap", WebkitOverflowScrolling:"touch", gap:5}}>
         {visibleTabs.map(t => (
           <button key={t.id} onClick={() => setTab(t.id)} 
-            style={{padding:"14px 20px", background:"none", border:"none", borderBottom:"3px solid "+(tab===t.id?C.cyan:"transparent"), cursor:"pointer", color:tab===t.id?C.cyan:C.muted, fontSize:12, fontWeight:tab===t.id?900:600, transition:"all 0.3s", display:"flex", alignItems:"center", gap:8}}>
-            <span style={{opacity: tab===t.id?1:0.5, fontSize:14}}>{t.icon}</span>{t.label}
+            style={{padding:"14px 20px", background:"none", border:"none", borderBottom:"3px solid "+(tab===t.id?C.cyan:"transparent"), cursor:"pointer", color:tab===t.id?C.cyan:"var(--text-main)", opacity:tab===t.id?1:0.45, fontSize:13, fontWeight:tab===t.id?900:600, transition:"all 0.3s", display:"flex", alignItems:"center", gap:8}}>
+            <span style={{fontSize:15}}>{t.icon}</span>{t.label}
           </button>
         ))}
       </div>
@@ -209,7 +244,7 @@ function MainApp({ authUser, onLogout }) {
         {tab === "dashboard" && <Dashboard stock={stock} txns={txns} />}
         {tab === "entry" && <StockEntry authUser={authUser} stock={stock} setStock={setStock} txns={txns} setTxns={setTxns} />}
         
-        {/* 🚀 RENDER PRE-ORDER MANAGER */}
+        {/* RENDER PRE-ORDER MANAGER */}
         {tab === "preorder" && <PreOrderManager authUser={authUser} />}
         
         {tab === "heatmap" && <Heatmap authUser={authUser} stock={stock} setStock={setStock} txns={txns} setTxns={setTxns} />}

@@ -8,8 +8,8 @@ import { useToast } from "./ToastContext";
 import Skeleton from "./Skeleton"; 
 import { OptiLogo } from "./Icons"; 
 
-const inp = {width:"100%",padding:"10px 12px",borderRadius:8,border:"1px solid #1a2540",background:"#0a0e1a",color:"#dde6f0",fontSize:13,outline:"none",fontFamily:"inherit"};
-const lbl = {fontSize:10,color:"#4a5a70",display:"block",marginBottom:6,textTransform:"uppercase",letterSpacing:".7px",fontWeight:700};
+const inp = {width:"100%",padding:"10px 12px",borderRadius:8,border:"1px solid var(--border-color)",background:"var(--bg-main)",color:"var(--text-main)",fontSize:13,outline:"none",fontFamily:"inherit"};
+const lbl = {fontSize:10,color:"var(--text-muted)",display:"block",marginBottom:6,textTransform:"uppercase",letterSpacing:".7px",fontWeight:700};
 
 function BarcodeStrip({ code, height=58 }) {
   const { bars, digits, check } = useMemo(() => buildUPCEBars(code), [code]);
@@ -127,8 +127,7 @@ export default function StockEntry({ authUser, stock, setStock, txns, setTxns })
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
-        console.error("Backend Error:", errorData); // Logs full error to browser console
-        // This will pop up the exact technical error from C# so we can see what's wrong
+        console.error("Backend Error:", errorData); 
         throw new Error(errorData.error || errorData.message || "সার্ভারে ডাটা সেভ হতে সমস্যা হয়েছে!");
       }
 
@@ -159,7 +158,7 @@ export default function StockEntry({ authUser, stock, setStock, txns, setTxns })
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
         
         {/* LEFT: FORM SECTION */}
-        <div className="lg:col-span-3 bg-[#0f1424] p-6 rounded-2xl border border-[#1a2540] shadow-2xl">
+        <div className="lg:col-span-3 bg-[var(--bg-card)] p-6 rounded-2xl border border-[var(--border-color)] shadow-2xl">
           <h2 className="text-lg font-black text-[#22d3ee] mb-6 flex items-center gap-2">⊕ স্টক এন্ট্রি ফর্ম</h2>
 
           <div className="mb-6">
@@ -167,7 +166,7 @@ export default function StockEntry({ authUser, stock, setStock, txns, setTxns })
             <div className="grid grid-cols-2 gap-4 mb-4">
               {[{v:"in", l:"⬇ স্টক ইন", c:C.green}, {v:"out", l:"⬆ স্টক আউট", c:C.red}].map(d => (
                 <button key={d.v} onClick={() => setForm({...form, direction: d.v, subtype: d.v==="in"?"purchase":"sale"})} 
-                  style={{padding:"12px", borderRadius:"8px", border:`2px solid ${form.direction===d.v ? d.c : C.bdr}`, background: form.direction===d.v ? d.c+"14" : "transparent", color: form.direction===d.v ? d.c : C.muted, fontWeight: "bold", cursor:"pointer", transition: "all 0.2s"}}>
+                  style={{padding:"12px", borderRadius:"8px", border:`2px solid ${form.direction===d.v ? d.c : C.bdr}`, background: form.direction===d.v ? d.c+"14" : "transparent", color: form.direction===d.v ? d.c : "var(--text-muted)", fontWeight: "bold", cursor:"pointer", transition: "all 0.2s"}}>
                   {d.l}
                 </button>
               ))}
@@ -179,7 +178,7 @@ export default function StockEntry({ authUser, stock, setStock, txns, setTxns })
                 const sm = SM[st.id]; const isActive = form.subtype === st.id;
                 return (
                   <button key={st.id} onClick={() => setForm({...form, subtype: st.id})} 
-                    style={{padding:"10px", borderRadius:"8px", border:`2px solid ${isActive ? sm.color : C.bdr}`, background: isActive ? sm.color+"14" : "transparent", color: isActive ? sm.color : C.muted, cursor:"pointer", transition: "all 0.2s"}}>
+                    style={{padding:"10px", borderRadius:"8px", border:`2px solid ${isActive ? sm.color : C.bdr}`, background: isActive ? sm.color+"14" : "transparent", color: isActive ? sm.color : "var(--text-muted)", cursor:"pointer", transition: "all 0.2s"}}>
                     <div className="text-xl mb-1">{sm.icon}</div>
                     <div className="text-[10px] font-bold">{sm.label}</div>
                   </button>
@@ -195,7 +194,7 @@ export default function StockEntry({ authUser, stock, setStock, txns, setTxns })
             )}
           </div>
 
-          <div className="bg-[#050810] p-4 rounded-xl border border-[#1a2540] mb-6">
+          <div className="bg-[var(--bg-main)] p-4 rounded-xl border border-[var(--border-color)] mb-6">
             <h3 className="text-[10px] font-black text-[#22d3ee] uppercase tracking-widest mb-4">◈ লেন্স টাইপ নির্বাচন</h3>
             
             <div style={lbl}>কোটিং</div>
@@ -210,11 +209,11 @@ export default function StockEntry({ authUser, stock, setStock, txns, setTxns })
                   .filter(g => ["হোয়াইট", "ব্লু কাট", "ফটোক্রোমিক", "এমসি"].includes(g.name))
                   .map(g => (
                   <button key={g.id} onClick={() => setForm({...form, glassType: g.id})} 
-                    style={{padding:"10px", borderRadius:"10px", border:`2px solid ${form.glassType===g.id ? g.accentColor : "#1a2540"}`, background: form.glassType===g.id ? g.accentColor+"14" : "transparent", textAlign:"left", display:"flex", gap:"10px", alignItems:"center", cursor:"pointer", transition: "all 0.2s"}}>
+                    style={{padding:"10px", borderRadius:"10px", border:`2px solid ${form.glassType===g.id ? g.accentColor : "var(--border-color)"}`, background: form.glassType===g.id ? g.accentColor+"14" : "transparent", textAlign:"left", display:"flex", gap:"10px", alignItems:"center", cursor:"pointer", transition: "all 0.2s"}}>
                     <div style={{width:12, height:12, borderRadius:"50%", background: g.accentColor, boxShadow: form.glassType===g.id ? `0 0 10px ${g.accentColor}` : "none"}}/>
                     <div>
-                      <div style={{fontSize:"13px", fontWeight:"bold", color: "#fff"}}>{g.name}</div>
-                      <div style={{fontSize:"10px", color:"#4a5a70"}}>{g.subName}</div>
+                      <div style={{fontSize:"13px", fontWeight:"bold", color: "var(--text-main)"}}>{g.name}</div>
+                      <div style={{fontSize:"10px", color:"var(--text-muted)"}}>{g.subName}</div>
                     </div>
                   </button>
                 ))}
@@ -225,23 +224,23 @@ export default function StockEntry({ authUser, stock, setStock, txns, setTxns })
             <div className="grid grid-cols-3 gap-3 mb-5">
               {DESIGNS.map(d => (
                 <button key={d.id} onClick={() => setForm({...form, glassDesign: d.id})} 
-                  style={{padding:"10px", borderRadius:"10px", border:`2px solid ${form.glassDesign===d.id ? "#22d3ee" : "#1a2540"}`, background: form.glassDesign===d.id ? "#07202e" : "transparent", textAlign:"left", cursor:"pointer", transition: "all 0.2s"}}>
-                  <div style={{fontSize:"12px", fontWeight:"bold", color: form.glassDesign===d.id ? "#22d3ee" : "#dde6f0"}}>{d.n}</div>
-                  <div style={{fontSize:"9px", color: form.glassDesign===d.id ? "#22d3ee" : "#4a5a70", opacity: 0.8}}>{d.sub}</div>
+                  style={{padding:"10px", borderRadius:"10px", border:`2px solid ${form.glassDesign===d.id ? "#22d3ee" : "var(--border-color)"}`, background: form.glassDesign===d.id ? "var(--bg-card)" : "transparent", textAlign:"left", cursor:"pointer", transition: "all 0.2s"}}>
+                  <div style={{fontSize:"12px", fontWeight:"bold", color: form.glassDesign===d.id ? "#22d3ee" : "var(--text-main)"}}>{d.n}</div>
+                  <div style={{fontSize:"9px", color: form.glassDesign===d.id ? "#22d3ee" : "var(--text-muted)", opacity: 0.8}}>{d.sub}</div>
                 </button>
               ))}
             </div>
 
-            <div className="bg-[#0a0e1a] p-3 rounded-lg border border-[#1a2540] flex items-center gap-3">
-                <span className="text-[10px] text-[#4a5a70] uppercase tracking-wider">নির্বাচিত লেন্স</span>
+            <div className="bg-[var(--bg-card)] p-3 rounded-lg border border-[var(--border-color)] flex items-center gap-3">
+                <span className="text-[10px] text-[var(--text-muted)] uppercase tracking-wider">নির্বাচিত লেন্স</span>
                 <div style={{width:10, height:10, borderRadius:"50%", background: dbGlassTypes.find(g => g.id === form.glassType)?.accentColor || "#fff"}} />
-                <span className="text-[12px] font-bold text-white">{dbGlassTypes.find(g => g.id === form.glassType)?.name || "---"}</span>
-                <span className="text-[12px] text-[#4a5a70]">+</span>
+                <span className="text-[12px] font-bold text-[var(--text-main)]">{dbGlassTypes.find(g => g.id === form.glassType)?.name || "---"}</span>
+                <span className="text-[12px] text-[var(--text-muted)]">+</span>
                 <span className="text-[12px] font-bold text-[#22d3ee]">{DESIGNS.find(d => d.id === form.glassDesign)?.n || "---"}</span>
             </div>
           </div>
 
-          <div className="bg-[#050810] p-4 rounded-xl border border-[#1a2540] mb-6">
+          <div className="bg-[var(--bg-main)] p-4 rounded-xl border border-[var(--border-color)] mb-6">
             <h3 className="text-[10px] font-black text-[#22d3ee] uppercase tracking-widest mb-4">◈ প্রেসক্রিপশন পাওয়ার</h3>
             
             <div className="flex flex-wrap gap-4 mb-4">
@@ -275,8 +274,8 @@ export default function StockEntry({ authUser, stock, setStock, txns, setTxns })
               </div>
             </div>
 
-            <div className="bg-[#0a0e1a] p-3 rounded-lg border border-[#1a2540] text-center">
-               <div className="text-[8px] text-[#4a5a70] uppercase mb-2">বারকোড প্রিভিউ</div>
+            <div className="bg-[var(--bg-card)] p-3 rounded-lg border border-[var(--border-color)] text-center">
+               <div className="text-[8px] text-[var(--text-muted)] uppercase mb-2">বারকোড প্রিভিউ</div>
                <BarcodeStrip code={genBC(dbGlassTypes.find(g=>g.id===form.glassType)?.tag||"XX", form.sph, form.cyl, showAdd ? form.add : "0.00", form.glassDesign)} height={50} />
             </div>
           </div>
@@ -294,22 +293,22 @@ export default function StockEntry({ authUser, stock, setStock, txns, setTxns })
         </div>
 
         {/* RIGHT: RECENT TRANSACTIONS */}
-        <div className="lg:col-span-2 bg-[#0f1424] p-6 rounded-2xl border border-[#1a2540] flex flex-col h-[850px]">
+        <div className="lg:col-span-2 bg-[var(--bg-card)] p-6 rounded-2xl border border-[var(--border-color)] flex flex-col h-[850px]">
           <h3 className="text-xs font-black text-[#22d3ee] uppercase tracking-widest mb-6 flex items-center gap-2"><span>⏱</span> সাম্প্রতিক লেনদেন</h3>
           <div className="flex-1 overflow-y-auto custom-scrollbar space-y-3">
             {txns.length === 0 ? (
-              <div className="opacity-50 text-center text-sm italic text-[#4a5568] py-20">নতুন এন্ট্রি করলে এখানে দেখা যাবে...</div>
+              <div className="opacity-50 text-center text-sm italic text-[var(--text-muted)] py-20">নতুন এন্ট্রি করলে এখানে দেখা যাবে...</div>
             ) : (
               txns.map((tx) => {
                  const sm = SM[tx.subtype]||{};
                  return (
-                  <div key={tx.id} className="bg-[#050810] border border-[#1a2540] p-4 rounded-xl flex justify-between items-center animate-in slide-in-from-right-4 duration-300">
+                  <div key={tx.id} className="bg-[var(--bg-main)] border border-[var(--border-color)] p-4 rounded-xl flex justify-between items-center animate-in slide-in-from-right-4 duration-300">
                     <div>
                       <div className="flex items-center gap-2 mb-1">
                         <span style={{background:sm.color+"22", color:sm.color}} className="text-[10px] font-black px-2 py-0.5 rounded-md border border-current">{sm.label}</span>
-                        <span className="text-xs font-bold text-[#dde6f0]">{tx.glassName}</span>
+                        <span className="text-xs font-bold text-[var(--text-main)]">{tx.glassName}</span>
                       </div>
-                      <div className="text-[9px] font-mono text-[#4a5568]">◫ {tx.barcode} {tx.axis !== null && tx.axis !== undefined ? `| Axis: ${tx.axis}°` : ""}</div>
+                      <div className="text-[9px] font-mono text-[var(--text-muted)]">◫ {tx.barcode} {tx.axis !== null && tx.axis !== undefined ? `| Axis: ${tx.axis}°` : ""}</div>
                     </div>
                     <div className="text-right">
                       <div className={`font-mono font-black text-lg ${tx.direction === "in" ? "text-[#4ade80]" : "text-[#f87171]"}`}>
@@ -324,9 +323,9 @@ export default function StockEntry({ authUser, stock, setStock, txns, setTxns })
         </div>
       </div>
 
-      <div className="pt-10 border-t border-[#1a2540] flex items-center justify-center gap-4 opacity-40">
+      <div className="pt-10 border-t border-[var(--border-color)] flex items-center justify-center gap-4 opacity-40">
         <OptiLogo className="w-6 h-6 grayscale" />
-        <div className="text-[10px] font-black text-[#4a5568] uppercase tracking-[0.4em]">
+        <div className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-[0.4em]">
           A <span className="text-[#0ea5e9]">QUANTUM</span> Project
         </div>
       </div>
