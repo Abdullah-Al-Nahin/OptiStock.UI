@@ -209,7 +209,10 @@ function MainApp({ authUser, onLogout }) {
         {tab === "scanner" && <Scanner authUser={authUser} stock={stock} setStock={setStock} txns={txns} setTxns={setTxns} />}
         {tab === "print" && <LabelPrint stock={stock} />}
         {tab === "invoices" && <InvoiceList txns={txns} />}
-        {tab === "browser" && <StockBrowser stock={stock} />}
+        
+        {/* 🚀 THE FIX: Passing setStock and authUser to StockBrowser! */}
+        {tab === "browser" && <StockBrowser stock={stock} setStock={setStock} authUser={authUser} />}
+        
         {tab === "report" && <Report txns={txns} />}
         {tab === "admin" && <AdminPanel authUser={authUser} />}
         {tab === "feedback" && <Feedback />}

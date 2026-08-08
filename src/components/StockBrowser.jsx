@@ -1,17 +1,20 @@
 // src/components/StockBrowser.jsx
 import React, { useState, useMemo } from "react";
-import { C, GLASS_TYPES, parseKey, genBC } from "../utils/constants";
+import { C, GLASS_TYPES, parseKey, genBC, API_BASE_URL } from "../utils/constants";
 import Skeleton from "./Skeleton"; 
 import { OptiLogo } from "./Icons"; 
+import { useToast } from "./ToastContext"; // 🚀 Added Toast for notifications
 
 const inpStyle = { padding: "10px 14px", borderRadius: 10, border: "1px solid #1a2540", background: "#050810", color: "#dde6f0", fontSize: 13, outline: "none", width: "100%" };
 
-export default function StockBrowser({ stock }) {
+export default function StockBrowser({ stock, setStock, authUser }) {
+  const toast = useToast();
   const [filterGlass, setFilterGlass] = useState("all");
   const [filterSph, setFilterSph] = useState("");
   const [filterCyl, setFilterCyl] = useState("");
   const [filterAxis, setFilterAxis] = useState("");
   const [inStockOnly, setInStockOnly] = useState(true);
+  const [isDeleting, setIsDeleting] = useState(false); // Prevents spam-clicking
 
   const resetFilters = () => {
     setFilterGlass("all"); setFilterSph(""); setFilterCyl(""); setFilterAxis(""); setInStockOnly(true);
@@ -41,8 +44,9 @@ export default function StockBrowser({ stock }) {
           axisVal = parseInt(axMatch[1], 10);
         }
         
-        // Strip out the AX90/AX70 from the design name so the table looks clean
-        const cleanDesign = design.replace(/(?:_)?ax\d+/i, '').replace(/_/g, " ").trim().toUpperCase();
+        // Strip out the AX90/AX70 from the design name for the backend & UI
+        const rawDbDesign = design.replace(/(?:_)?ax\d+/i, ''); 
+        const cleanDesign = rawDbDesign.replace(/_/g, " ").trim().toUpperCase();
         
         // Match partial strings for fast typing
         if (filterSph && !sph.includes(filterSph)) return;
@@ -51,10 +55,18 @@ export default function StockBrowser({ stock }) {
 
         list.push({
           id: key + g.id,
+          glassId: g.id,
           glassName: g.name, tag: g.tag, accent: g.accent,
           sph, cyl, add, axis: axisVal, qty,
           barcode: genBC(g.tag, sph, cyl, add, design),
-          design: cleanDesign
+          design: cleanDesign,
+          // 🚀 RAW VALUES FOR THE C# BACKEND DELETION
+          rawSph: parseFloat(sph),
+          rawCyl: parseFloat(cyl),
+          rawAdd: parseFloat(add),
+          rawAxis: axisVal,
+          rawDesign: rawDbDesign,
+          rawKey: key // Needed to instantly remove it from the UI locally
         });
       });
     });
@@ -62,6 +74,53 @@ export default function StockBrowser({ stock }) {
     // Sort by Quantity (Highest first), then alphabetically by power
     return list.sort((a, b) => b.qty - a.qty || a.sph.localeCompare(b.sph));
   }, [stock, filterGlass, filterSph, filterCyl, filterAxis, inStockOnly]);
+
+  // --- 🚀 THE DELETE FUNCTION ---
+  const handleDelete = async (item) => {
+    if (!window.confirm("আপনি কি নিশ্চিত যে এই এন্ট্রিটি ডাটাবেস থেকে মুছে ফেলতে চান?")) return;
+
+    setIsDeleting(true);
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/StockEntries/remove`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${authUser.token}` // Secure the request
+        },
+        body: JSON.stringify({
+          GlassTypeId: item.glassId,
+          Sph: item.rawSph,
+          Cyl: item.rawCyl,
+          Add: item.rawAdd,
+          Axis: item.rawAxis,
+          Design: item.rawDesign
+        })
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || "মুছে ফেলতে সমস্যা হয়েছে!");
+      }
+
+      // 💥 INSTANT UI UPDATE: Remove the item from React state immediately 
+      setStock(prev => {
+        const newState = { ...prev };
+        if (newState[item.glassId]) {
+          const updatedGlassType = { ...newState[item.glassId] };
+          delete updatedGlassType[item.rawKey]; // Erases the exact lens
+          newState[item.glassId] = updatedGlassType;
+        }
+        return newState;
+      });
+
+      toast.success("এন্ট্রি সফলভাবে ডাটাবেস থেকে মুছে ফেলা হয়েছে!");
+    } catch (error) {
+      console.error("Delete Error:", error);
+      toast.error(error.message);
+    } finally {
+      setIsDeleting(false);
+    }
+  };
 
   // 🚀 SHOW SKELETON LOADERS WHILE DATA IS LOADING
   if (!stock || Object.keys(stock).length === 0) {
@@ -141,12 +200,13 @@ export default function StockBrowser({ stock }) {
                 <th className="p-5 text-[11px] font-black text-[#22d3ee] uppercase tracking-widest">বারকোড</th>
                 <th className="p-5 text-[11px] font-black text-[#22d3ee] uppercase tracking-widest text-center">স্টক</th>
                 <th className="p-5 text-[11px] font-black text-[#22d3ee] uppercase tracking-widest text-center">অবস্থা</th>
+                <th className="p-5 text-[11px] font-black text-[#f87171] uppercase tracking-widest text-center w-16">মুছুন</th>
               </tr>
             </thead>
             <tbody>
               {tableData.length === 0 ? (
                 <tr>
-                   <td colSpan="8" className="p-20 text-center">
+                   <td colSpan="9" className="p-20 text-center">
                       <div className="text-4xl mb-4 opacity-20">🔎</div>
                       <div className="text-[#c8dff0] font-black text-lg mb-1">কোনো লেন্স পাওয়া যায়নি</div>
                       <div className="text-xs text-[#4a5a70] italic">ফিল্টার পরিবর্তন করে আবার চেষ্টা করুন</div>
@@ -183,6 +243,23 @@ export default function StockBrowser({ stock }) {
                         <span className="bg-[#4ade80]/10 border border-[#4ade80]/30 text-[#4ade80] px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest shadow-sm">✓ উপলব্ধ</span>
                       )}
                     </td>
+                    
+                    {/* 🚀 THE NEW DUSTBIN BUTTON COLUMN */}
+                    <td className="p-5 text-center">
+                      <button 
+                        onClick={() => handleDelete(item)}
+                        disabled={isDeleting}
+                        title="এই লেন্সটি ডাটাবেস থেকে মুছে ফেলুন"
+                        className="w-8 h-8 rounded-lg bg-[#f87171]/10 text-[#f87171] hover:bg-[#f87171] hover:text-white border border-[#f87171]/30 transition-all flex items-center justify-center shadow-sm mx-auto disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M3 6h18"></path>
+                          <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path>
+                          <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path>
+                        </svg>
+                      </button>
+                    </td>
+
                   </tr>
                 ))
               )}
