@@ -229,7 +229,7 @@ function MainApp({ authUser, onLogout }) {
         </div>
       </div>
 
-      {/* NAVIGATION TABS (🚀 SHARPER CONTRAST & LOWER INACTIVE OPACITY) */}
+      {/* NAVIGATION TABS (SHARPER CONTRAST & LOWER INACTIVE OPACITY) */}
       <div className="custom-scrollbar" style={{display:"flex", background:"var(--bg-nav)", borderBottom:"1px solid "+C.bdr, padding:"0 20px", overflowX:"auto", whiteSpace:"nowrap", WebkitOverflowScrolling:"touch", gap:5}}>
         {visibleTabs.map(t => (
           <button key={t.id} onClick={() => setTab(t.id)} 
@@ -243,18 +243,12 @@ function MainApp({ authUser, onLogout }) {
       <div style={{padding:24, maxWidth:1600, margin:"0 auto", width:"100%"}}>
         {tab === "dashboard" && <Dashboard stock={stock} txns={txns} />}
         {tab === "entry" && <StockEntry authUser={authUser} stock={stock} setStock={setStock} txns={txns} setTxns={setTxns} />}
-        
-        {/* RENDER PRE-ORDER MANAGER */}
         {tab === "preorder" && <PreOrderManager authUser={authUser} />}
-        
         {tab === "heatmap" && <Heatmap authUser={authUser} stock={stock} setStock={setStock} txns={txns} setTxns={setTxns} />}
         {tab === "scanner" && <Scanner authUser={authUser} stock={stock} setStock={setStock} txns={txns} setTxns={setTxns} />}
         {tab === "print" && <LabelPrint stock={stock} />}
         {tab === "invoices" && <InvoiceList txns={txns} />}
-        
-        {/* Passing setStock and authUser to StockBrowser! */}
         {tab === "browser" && <StockBrowser stock={stock} setStock={setStock} authUser={authUser} />}
-        
         {tab === "report" && <Report txns={txns} />}
         {tab === "admin" && <AdminPanel authUser={authUser} />}
         {tab === "feedback" && <Feedback />}
@@ -273,6 +267,32 @@ export default function App() {
     localStorage.removeItem("optistock_user");
     setAuthUser(null);
   };
+
+  // 🚀 AUTO-LOGOUT ON 1 HOUR OF INACTIVITY
+  useEffect(() => {
+    if (!authUser) return;
+
+    let inactivityTimer;
+
+    const resetTimer = () => {
+      clearTimeout(inactivityTimer);
+      // 3,600,000 ms = 1 Hour
+      inactivityTimer = setTimeout(() => {
+        handleLogout();
+        alert("নিরাপত্তার স্বার্থে ১ ঘণ্টা নিষ্ক্রিয় থাকায় আপনাকে স্বয়ংক্রিয়ভাবে লগআউট করা হয়েছে।\n(Logged out due to 1 hour of inactivity)");
+      }, 3600000);
+    };
+
+    const activeEvents = ['mousemove', 'keydown', 'mousedown', 'scroll', 'touchstart'];
+    
+    activeEvents.forEach(evt => window.addEventListener(evt, resetTimer));
+    resetTimer();
+
+    return () => {
+      clearTimeout(inactivityTimer);
+      activeEvents.forEach(evt => window.removeEventListener(evt, resetTimer));
+    };
+  }, [authUser]);
 
   return (
     <ErrorBoundary>

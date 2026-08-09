@@ -8,6 +8,7 @@ import { OptiLogo } from "./Icons";
 const PERMISSIONS = [
   { id: "dashboard", label: "ড্যাশবোর্ড (Dashboard)", icon: "◈" },
   { id: "entry", label: "স্টক এন্ট্রি (Stock Entry)", icon: "⊕" },
+  { id: "preorder", label: "প্রি-অর্ডার (Pre-Order)", icon: "📦" }, // 👈 ADDED PREORDER
   { id: "heatmap", label: "হিটম্যাপ (Heatmap)", icon: "⊞" },
   { id: "scanner", label: "স্ক্যানার (Scanner)", icon: "◫" },
   { id: "print", label: "লেবেল প্রিন্ট (Label Print)", icon: "🏷️" },
@@ -81,7 +82,7 @@ export default function AdminPanel({ authUser }) {
       passwordHash: form.password, 
       role: form.role,
       allowedTabs: form.role === "Admin" 
-        ? "dashboard,entry,heatmap,scanner,print,invoices,browser,report,admin" 
+        ? "dashboard,entry,preorder,heatmap,scanner,print,invoices,browser,report,admin" // 👈 Added preorder for Admin
         : form.allowedTabs.join(',')
     };
 
