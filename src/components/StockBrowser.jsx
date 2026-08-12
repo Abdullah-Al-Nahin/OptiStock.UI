@@ -37,21 +37,21 @@ export default function StockBrowser({ stock, setStock, authUser }) {
         const add = parsed.add;
         let design = parsed.design;
 
-        // 🚀 ROBUST AXIS EXTRACTOR AND DESIGN CLEANER
-        let axisVal = 0;
+        // ROBUST AXIS EXTRACTOR AND DESIGN CLEANER
+        const hasCyl = parseFloat(cyl) !== 0;
+
+        let axisVal = hasCyl ? 0 : null; // Defaults to null if no CYL, matching DB
         const axMatch = key.match(/(?:_)?ax(\d+)/i);
-        if (axMatch) {
+        if (axMatch && hasCyl) {
           axisVal = parseInt(axMatch[1], 10);
         }
         
-        // Strip out the AX90/AX70 from the design name for the backend & UI
         const rawDbDesign = design.replace(/(?:_)?ax\d+/i, ''); 
         const cleanDesign = rawDbDesign.replace(/_/g, " ").trim().toUpperCase();
         
-        // Match partial strings for fast typing
         if (filterSph && !sph.includes(filterSph)) return;
         if (filterCyl && !cyl.includes(filterCyl)) return;
-        if (filterAxis && !axisVal.toString().includes(filterAxis)) return;
+        if (filterAxis && !axisVal?.toString().includes(filterAxis)) return;
 
         list.push({
           id: key + g.id,
@@ -60,22 +60,20 @@ export default function StockBrowser({ stock, setStock, authUser }) {
           sph, cyl, add, axis: axisVal, qty,
           barcode: genBC(g.tag, sph, cyl, add, design),
           design: cleanDesign,
-          // 🚀 RAW VALUES FOR THE C# BACKEND DELETION
+          // RAW VALUES FOR THE C# BACKEND DELETION
           rawSph: parseFloat(sph),
           rawCyl: parseFloat(cyl),
           rawAdd: parseFloat(add),
-          rawAxis: axisVal,
+          rawAxis: axisVal, // Correctly sends null for entries without CYL
           rawDesign: rawDbDesign,
           rawKey: key 
         });
       });
     });
 
-    // Sort by Quantity (Highest first), then alphabetically by power
     return list.sort((a, b) => b.qty - a.qty || a.sph.localeCompare(b.sph));
   }, [stock, filterGlass, filterSph, filterCyl, filterAxis, inStockOnly]);
 
-  // --- 🚀 THE DELETE FUNCTION ---
   const handleDelete = async (item) => {
     if (!window.confirm("আপনি কি নিশ্চিত যে এই এন্ট্রিটি ডাটাবেস থেকে মুছে ফেলতে চান?")) return;
 
@@ -87,13 +85,14 @@ export default function StockBrowser({ stock, setStock, authUser }) {
           "Content-Type": "application/json",
           "Authorization": `Bearer ${authUser.token}` 
         },
+        // Keys configured in camelCase to perfectly match the backend expectations
         body: JSON.stringify({
-          GlassTypeId: item.glassId,
-          Sph: item.rawSph,
-          Cyl: item.rawCyl,
-          Add: item.rawAdd,
-          Axis: item.rawAxis,
-          Design: item.rawDesign
+          glassTypeId: item.glassId,
+          sph: item.rawSph,
+          cyl: item.rawCyl,
+          add: item.rawAdd,
+          axis: item.rawAxis,
+          design: item.rawDesign
         })
       });
 
@@ -102,7 +101,7 @@ export default function StockBrowser({ stock, setStock, authUser }) {
         throw new Error(errorData.message || "মুছে ফেলতে সমস্যা হয়েছে!");
       }
 
-      // 💥 INSTANT UI UPDATE: Remove the item from React state immediately 
+      // INSTANT UI UPDATE: Remove the item from React state immediately 
       setStock(prev => {
         const newState = { ...prev };
         if (newState[item.glassId]) {
@@ -122,7 +121,6 @@ export default function StockBrowser({ stock, setStock, authUser }) {
     }
   };
 
-  // 🚀 SHOW SKELETON LOADERS WHILE DATA IS LOADING
   if (!stock || Object.keys(stock).length === 0) {
     return (
       <div className="animate-in fade-in zoom-in-95 duration-500 space-y-6 pb-10">
