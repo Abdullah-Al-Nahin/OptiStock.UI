@@ -37,7 +37,7 @@ export default function StockBrowser({ stock, setStock, authUser }) {
         const add = parsed.add;
         let design = parsed.design;
 
-        // ROBUST AXIS EXTRACTOR AND DESIGN CLEANER
+        // 🚀 ROBUST AXIS EXTRACTOR AND DESIGN CLEANER
         const hasCyl = parseFloat(cyl) !== 0;
 
         let axisVal = hasCyl ? 0 : null; // Defaults to null if no CYL, matching DB
@@ -60,11 +60,11 @@ export default function StockBrowser({ stock, setStock, authUser }) {
           sph, cyl, add, axis: axisVal, qty,
           barcode: genBC(g.tag, sph, cyl, add, design),
           design: cleanDesign,
-          // RAW VALUES FOR THE C# BACKEND DELETION
+          // 🚀 RAW VALUES FOR THE C# BACKEND DELETION
           rawSph: parseFloat(sph),
           rawCyl: parseFloat(cyl),
           rawAdd: parseFloat(add),
-          rawAxis: axisVal, // Correctly sends null for entries without CYL
+          rawAxis: axisVal, 
           rawDesign: rawDbDesign,
           rawKey: key 
         });
@@ -85,7 +85,6 @@ export default function StockBrowser({ stock, setStock, authUser }) {
           "Content-Type": "application/json",
           "Authorization": `Bearer ${authUser.token}` 
         },
-        // Keys configured in camelCase to perfectly match the backend expectations
         body: JSON.stringify({
           glassTypeId: item.glassId,
           sph: item.rawSph,
@@ -101,7 +100,7 @@ export default function StockBrowser({ stock, setStock, authUser }) {
         throw new Error(errorData.message || "মুছে ফেলতে সমস্যা হয়েছে!");
       }
 
-      // INSTANT UI UPDATE: Remove the item from React state immediately 
+      // INSTANT UI UPDATE
       setStock(prev => {
         const newState = { ...prev };
         if (newState[item.glassId]) {
@@ -198,13 +197,17 @@ export default function StockBrowser({ stock, setStock, authUser }) {
                 <th className="p-5 text-[11px] font-black text-[#22d3ee] uppercase tracking-widest">বারকোড</th>
                 <th className="p-5 text-[11px] font-black text-[#22d3ee] uppercase tracking-widest text-center">স্টক</th>
                 <th className="p-5 text-[11px] font-black text-[#22d3ee] uppercase tracking-widest text-center">অবস্থা</th>
-                <th className="p-5 text-[11px] font-black text-[#f87171] uppercase tracking-widest text-center w-16">মুছুন</th>
+                
+                {/* 🚀 ONLY RENDER THIS HEADER FOR ADMINS */}
+                {authUser?.role === "Admin" && (
+                  <th className="p-5 text-[11px] font-black text-[#f87171] uppercase tracking-widest text-center w-16">মুছুন</th>
+                )}
               </tr>
             </thead>
             <tbody>
               {tableData.length === 0 ? (
                 <tr>
-                   <td colSpan="9" className="p-20 text-center">
+                   <td colSpan={authUser?.role === "Admin" ? "9" : "8"} className="p-20 text-center">
                       <div className="text-4xl mb-4 opacity-20">🔎</div>
                       <div className="text-[var(--text-main)] font-black text-lg mb-1">কোনো লেন্স পাওয়া যায়নি</div>
                       <div className="text-xs text-[var(--text-muted)] italic">ফিল্টার পরিবর্তন করে আবার চেষ্টা করুন</div>
@@ -242,21 +245,23 @@ export default function StockBrowser({ stock, setStock, authUser }) {
                       )}
                     </td>
                     
-                    {/* DUSTBIN BUTTON COLUMN */}
-                    <td className="p-5 text-center">
-                      <button 
-                        onClick={() => handleDelete(item)}
-                        disabled={isDeleting}
-                        title="এই লেন্সটি ডাটাবেস থেকে মুছে ফেলুন"
-                        className="w-8 h-8 rounded-lg bg-[#f87171]/10 text-[#f87171] hover:bg-[#f87171] hover:text-white border border-[#f87171]/30 transition-all flex items-center justify-center shadow-sm mx-auto disabled:opacity-50 disabled:cursor-not-allowed"
-                      >
-                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                          <path d="M3 6h18"></path>
-                          <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path>
-                          <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path>
-                        </svg>
-                      </button>
-                    </td>
+                    {/* 🚀 DUSTBIN BUTTON COLUMN (ONLY FOR ADMINS) */}
+                    {authUser?.role === "Admin" && (
+                      <td className="p-5 text-center">
+                        <button 
+                          onClick={() => handleDelete(item)}
+                          disabled={isDeleting}
+                          title="এই লেন্সটি ডাটাবেস থেকে মুছে ফেলুন"
+                          className="w-8 h-8 rounded-lg bg-[#f87171]/10 text-[#f87171] hover:bg-[#f87171] hover:text-white border border-[#f87171]/30 transition-all flex items-center justify-center shadow-sm mx-auto disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M3 6h18"></path>
+                            <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path>
+                            <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path>
+                          </svg>
+                        </button>
+                      </td>
+                    )}
 
                   </tr>
                 ))
