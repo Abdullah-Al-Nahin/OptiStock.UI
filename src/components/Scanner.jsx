@@ -133,7 +133,8 @@ export default function Scanner({ authUser, stock, setStock, txns, setTxns }) {
       setTxns(prev => [{
         ...cloudTx,
         id: Date.now(),
-        time: new Date().toLocaleTimeString("en-GB"),
+        // 🚀 THE FIX: Saving the exact transaction time down to the second
+        time: new Date().toLocaleTimeString("en-GB", { hour: '2-digit', minute: '2-digit', second: '2-digit' }),
         date: today
       }, ...prev]);
 

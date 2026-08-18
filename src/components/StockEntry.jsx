@@ -75,7 +75,7 @@ export default function StockEntry({ authUser, stock, setStock, txns, setTxns })
 
   const showAdd = ["progressive","bifocal_moon","bifocal_d"].includes(form.glassDesign);
   
-  // 🚀 ROBUST AXIS & CYL PARSING
+  // ROBUST AXIS & CYL PARSING
   const hasCylVal = form.cyl && parseFloat(form.cyl) !== 0;
   const currentAxis = hasCylVal ? (parseInt(form.axis, 10) || 0) : 0;
   const baseKey = makeKey(form.sph, form.cyl, showAdd ? form.add : "0.00", form.glassDesign);
@@ -102,7 +102,7 @@ export default function StockEntry({ authUser, stock, setStock, txns, setTxns })
       subtype: form.subtype,
       glassTypeId: form.glassType, 
       glassName: gt.name,
-      design: form.glassDesign, // 🚀 THIS SENDS IT TO THE DATABASE
+      design: form.glassDesign, 
       sph: parseFloat(form.sph),
       cyl: parseFloat(form.cyl),
       axis: hasCylVal ? currentAxis : null,
@@ -143,7 +143,8 @@ export default function StockEntry({ authUser, stock, setStock, txns, setTxns })
         id: Date.now(), 
         timestamp,
         date: timestamp.split('T')[0],
-        time: new Date().toLocaleTimeString("en-GB").substring(0, 5)
+        // 🚀 THE FIX: Now saving the exact time with seconds!
+        time: new Date().toLocaleTimeString("en-GB", { hour: '2-digit', minute: '2-digit', second: '2-digit' })
       }, ...prev]);
       
       setForm(f => ({ ...f, qty: "1", unitPrice: "", note: "", customerName: "" }));
@@ -310,10 +311,12 @@ export default function StockEntry({ authUser, stock, setStock, txns, setTxns })
                       </div>
                       <div className="text-[9px] font-mono text-[var(--text-muted)]">◫ {tx.barcode} {tx.axis !== null && tx.axis !== undefined ? `| Axis: ${tx.axis}°` : ""}</div>
                     </div>
-                    <div className="text-right">
+                    <div className="text-right flex flex-col items-end justify-center">
                       <div className={`font-mono font-black text-lg ${tx.direction === "in" ? "text-[#4ade80]" : "text-[#f87171]"}`}>
                         {tx.direction === "in" ? "+" : "-"}{tx.qty}
                       </div>
+                      {/* 🚀 EXACT TIME DISPLAY ADDED HERE */}
+                      <div className="text-[8px] text-[var(--text-muted)] font-mono mt-1 tracking-widest">{tx.time}</div>
                     </div>
                   </div>
                  )

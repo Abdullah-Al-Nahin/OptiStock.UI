@@ -35,6 +35,30 @@ class ErrorBoundary extends React.Component {
   }
 }
 
+// 🚀 NEW: OPTIMIZED LIVE CLOCK COMPONENT
+const LiveClock = () => {
+  const [time, setTime] = useState(new Date());
+
+  useEffect(() => {
+    const timer = setInterval(() => setTime(new Date()), 1000);
+    return () => clearInterval(timer);
+  }, []);
+
+  const dateStr = time.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+  const timeStr = time.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true });
+
+  return (
+    <div style={{ textAlign: "right", marginRight: 5, paddingRight: 15, borderRight: "1px solid var(--border-color)" }}>
+      <div style={{ fontSize: 13, fontWeight: 900, color: "var(--text-main)", fontVariantNumeric: "tabular-nums", letterSpacing: "0.5px" }}>
+        {timeStr}
+      </div>
+      <div style={{ fontSize: 9, color: "var(--text-muted)", fontWeight: 800, textTransform: "uppercase", letterSpacing: "1px", marginTop: 2 }}>
+        {dateStr}
+      </div>
+    </div>
+  );
+};
+
 const ALL_TABS = [
   {id:"dashboard", icon:"◈", label:"ড্যাশবোর্ড"},
   {id:"entry",     icon:"⊕", label:"স্টক এন্ট্রি"},
@@ -56,7 +80,7 @@ function MainApp({ authUser, onLogout }) {
   const [tab, setTab] = useState(authUser.allowedTabs[0] || "entry"); 
   const [loading, setLoading] = useState(true);
 
-  // 🚀 Theme State Logic
+  // Theme State Logic
   const [theme, setTheme] = useState(localStorage.getItem("optistock_theme") || "dark");
 
   useEffect(() => {
@@ -88,7 +112,8 @@ function MainApp({ authUser, onLogout }) {
             ...tx,
             id: tx.id,
             date: tx.timestamp.split('T')[0], 
-            time: new Date(tx.timestamp).toLocaleTimeString("en-GB").substring(0, 5), 
+            // 🚀 Now storing the FULL exact time from the database
+            time: new Date(tx.timestamp).toLocaleTimeString("en-GB", { hour: '2-digit', minute: '2-digit', second: '2-digit' }), 
             glassType: tx.glassTypeId, 
             add: tx.add || "N/A"
           }));
@@ -136,7 +161,6 @@ function MainApp({ authUser, onLogout }) {
     fetchCloudData();
   }, [authUser.token]); 
 
-  // Make sure to allow preorder tab for admins or if explicitly allowed
   const visibleTabs = ALL_TABS.filter(t => t.id === "feedback" || authUser.allowedTabs.includes(t.id) || (t.id === "preorder" && authUser.role === "Admin"));
 
   // --- 🌐 GLOBAL HEADER LIVE STATS (DYNAMIC) ---
@@ -194,6 +218,9 @@ function MainApp({ authUser, onLogout }) {
 
           <div style={{borderLeft:"1px solid "+C.bdr, paddingLeft:15, display:"flex", alignItems:"center", gap:12}}>
             
+            {/* 🚀 ADDED LIVE CLOCK HERE */}
+            <LiveClock />
+            
             {/* SUN/MOON THEME TOGGLE BUTTON */}
             <button 
               onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')} 
@@ -229,7 +256,7 @@ function MainApp({ authUser, onLogout }) {
         </div>
       </div>
 
-      {/* NAVIGATION TABS (SHARPER CONTRAST & LOWER INACTIVE OPACITY) */}
+      {/* NAVIGATION TABS */}
       <div className="custom-scrollbar" style={{display:"flex", background:"var(--bg-nav)", borderBottom:"1px solid "+C.bdr, padding:"0 20px", overflowX:"auto", whiteSpace:"nowrap", WebkitOverflowScrolling:"touch", gap:5}}>
         {visibleTabs.map(t => (
           <button key={t.id} onClick={() => setTab(t.id)} 

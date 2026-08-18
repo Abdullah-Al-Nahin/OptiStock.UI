@@ -46,7 +46,8 @@ export default function Report({ txns }) {
       return {
         ...t,
         date: t.date || dt.toISOString().split('T')[0],
-        time: t.time || dt.toTimeString().split(' ')[0].substring(0,5),
+        // 🚀 THE FIX: Now capturing exact HH:MM:SS for all reports and ledgers
+        time: t.time || dt.toLocaleTimeString("en-GB", { hour: '2-digit', minute: '2-digit', second: '2-digit' }),
         glassType: t.glassType || t.glassTypeId, 
         add: t.add || "N/A"
       };

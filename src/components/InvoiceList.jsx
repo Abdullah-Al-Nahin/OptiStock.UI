@@ -38,7 +38,8 @@ export default function InvoiceList({ txns }) {
           ...t,
           id: t.id || t.Id || Math.random().toString(), 
           date: t.date || dt.toISOString().split('T')[0],
-          time: t.time || dt.toTimeString().split(' ')[0].substring(0,5),
+          // 🚀 THE FIX: Now capturing exact HH:MM:SS for invoices
+          time: t.time || dt.toLocaleTimeString("en-GB", { hour: '2-digit', minute: '2-digit', second: '2-digit' }),
           add: t.add || "N/A",
           invoiceNo: t.invoiceNo || "INV-0000",
           barcode: t.barcode || "000000"
@@ -250,7 +251,7 @@ export default function InvoiceList({ txns }) {
                       <td className="p-4 font-mono text-sm font-bold text-[var(--text-main)]">{tx.invoiceNo}</td>
                       <td className="p-4">
                         <div className="text-xs text-[var(--text-main)] font-bold">{tx.date}</div>
-                        <div className="text-[10px] text-[var(--text-muted)]">{tx.time}</div>
+                        <div className="text-[10px] text-[var(--text-muted)] font-mono">{tx.time}</div>
                       </td>
                       <td className="p-4 text-xs font-bold text-[var(--text-main)]">
                         {tx.customerName || "সাধারণ গ্রাহক"}
