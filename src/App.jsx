@@ -140,8 +140,7 @@ function MainApp({ authUser, onLogout }) {
             const designStr = entry.design || entry.glassDesign || (entry.add > 0 ? "progressive" : "single_vision");
             const baseKey = makeKey(sphStr, cylStr, addStr, designStr);
             
-            const hasCyl = entry.cyl !== 0;
-            const key = hasCyl ? `${baseKey}_ax${entry.axis || 0}` : baseKey;
+            const key = `${baseKey}_ax${entry.axis || 0}`;
             
             newStockState[entry.glassTypeId][key] = entry.qty;
           });
