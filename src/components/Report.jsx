@@ -1,6 +1,6 @@
 // src/components/Report.jsx
 import React, { useState, useMemo } from "react";
-import { C, GLASS_TYPES, fmtTk, today, SM, buildUPCEBars } from "../utils/constants";
+import { C, CATEGORIES, fmtTk, today, SM, buildUPCEBars } from "../utils/constants";
 import Skeleton, { CardSkeleton } from "./Skeleton"; 
 import { OptiLogo } from "./Icons"; 
 
@@ -66,7 +66,7 @@ export default function Report({ txns }) {
 
     const filteredTxns = normalizedTxns.filter(t => {
       const matchDate = t.date >= dateRange.start && t.date <= dateRange.end;
-      const matchGlass = filterGlass === "all" || t.glassType === filterGlass;
+      const matchGlass = filterGlass === "all" || (t.glassType && t.glassType.startsWith(filterGlass));
       const matchType = filterType === "all" || t.subtype === filterType;
       return matchDate && matchGlass && matchType;
     });
@@ -269,7 +269,7 @@ export default function Report({ txns }) {
           </div>
         </div>
         <div className="flex gap-4">
-          <div><label className="block text-[9px] text-[var(--text-muted)] font-bold mb-1">গ্লাস টাইপ</label><select value={filterGlass} onChange={e => setFilterGlass(e.target.value)} style={inp} className="w-48"><option value="all">সব গ্লাস</option>{GLASS_TYPES.map(g => <option key={g.id} value={g.id}>{g.name}</option>)}</select></div>
+          <div><label className="block text-[9px] text-[var(--text-muted)] font-bold mb-1">গ্লাস ম্যাটেরিয়াল</label><select value={filterGlass} onChange={e => setFilterGlass(e.target.value)} style={inp} className="w-48"><option value="all">সব ম্যাটেরিয়াল</option>{CATEGORIES.materials.map(g => <option key={g.id} value={g.id}>{g.n}</option>)}</select></div>
           <div><label className="block text-[9px] text-[var(--text-muted)] font-bold mb-1">লেনদেনের ধরন</label><select value={filterType} onChange={e => setFilterType(e.target.value)} style={inp} className="w-48"><option value="all">সব ধরন</option><option value="purchase">ক্রয়</option><option value="sale">পাইকারি বিক্রয়</option><option value="use">খুচরা বিক্রয়</option></select></div>
         </div>
       </div>

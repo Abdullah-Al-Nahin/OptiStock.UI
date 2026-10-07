@@ -1,7 +1,7 @@
 // src/components/Heatmap.jsx
 import React, { useState, useMemo, useRef, useEffect } from "react";
 import { 
-  C, GLASS_TYPES, makeKey, parseKey, genBC, buildUPCEBars, SPH_LIST, CYL_LIST 
+  C, makeKey, parseKey, genBC, buildUPCEBars, SPH_LIST, CYL_LIST, CATEGORIES 
 } from "../utils/constants";
 import { useToast } from "./ToastContext"; 
 import { OptiLogo } from "./Icons"; 
@@ -42,22 +42,22 @@ export default function Heatmap({ authUser, stock, setStock, txns, setTxns }) {
   const toast = useToast();
   const API_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000";
 
-  // Clean up coatings so designs don't appear as rows in the top table
-  const targetCoatings = ["হোয়াইট", "ব্লু কাট", "ফটোক্রোমিক", "এমসি"];
-  const displayCoatings = GLASS_TYPES.filter(g => targetCoatings.includes(g.name));
-  const finalCoatings = displayCoatings.length > 0 ? displayCoatings : GLASS_TYPES.slice(0, 4);
-
-  const [hmGlass, setHmGlass] = useState(finalCoatings[0]?.id || "");
+  const [hmMaterial, setHmMaterial] = useState("cr39");
+  const [hmCoating, setHmCoating] = useState("white");
+  const [hmColor, setHmColor] = useState("clear");
   const [hmDesign, setHmDesign] = useState("single_vision");
   const [hmAxis, setHmAxis] = useState(0); 
   const [hmSel, setHmSel] = useState(null);
 
   const gridRef = useRef(null);
-  const activeG = GLASS_TYPES.find(g => g.id === hmGlass) || finalCoatings[0] || {};
+  
+  const syntheticGlassId = `${hmMaterial}_${hmCoating}_${hmColor}`;
+  
+  const activeName = `${CATEGORIES.materials.find(m=>m.id===hmMaterial)?.n} - ${CATEGORIES.coatings.find(c=>c.id===hmCoating)?.n} - ${CATEGORIES.colors.find(c=>c.id===hmColor)?.n}`;
 
   // Mathematical Top Table Calculation
-  const getDesignTotalStock = (glassId, designId) => {
-    const gStock = stock[glassId] || {};
+  const getDesignTotalStock = (designId) => {
+    const gStock = stock[syntheticGlassId] || {};
     return Object.entries(gStock)
       .filter(([k, v]) => {
         if (v <= 0) return false;
@@ -73,7 +73,7 @@ export default function Heatmap({ authUser, stock, setStock, txns, setTxns }) {
 
   // Deep Float Scanning for Heatmap Matrix Grid
   const getStockDetails = (sph, cyl) => {
-    const gStock = stock[hmGlass] || {};
+    const gStock = stock[syntheticGlassId] || {};
     let foundQty = 0;
     let foundKey = null;
 
@@ -158,12 +158,12 @@ export default function Heatmap({ authUser, stock, setStock, txns, setTxns }) {
         }
       }, 150);
     }
-  }, [hmGlass, hmDesign, hmAxis, stock]); 
+  }, [hmMaterial, hmCoating, hmColor, hmDesign, hmAxis, stock]); 
 
 
   const quickAdjustStock = async (delta) => {
     if (!hmSel) return;
-    const currentQty = stock[hmGlass]?.[hmSel.stockKey] || 0;
+    const currentQty = stock[syntheticGlassId]?.[hmSel.stockKey] || 0;
     if (currentQty + delta < 0) return toast.error("স্টক শূন্যের নিচে নামানো সম্ভব নয়!"); 
     
     const direction = delta > 0 ? "in" : "out";
@@ -173,8 +173,12 @@ export default function Heatmap({ authUser, stock, setStock, txns, setTxns }) {
     const newTx = {
       direction: direction,
       subtype: subtype,
-      glassTypeId: hmGlass, 
-      glassName: activeG.name,
+      glassTypeId: syntheticGlassId, 
+      glassName: activeName,
+      material: hmMaterial,
+      coating: hmCoating,
+      color: hmColor,
+      design: hmDesign,
       sph: parseFloat(hmSel.sph), 
       cyl: parseFloat(hmSel.cyl), 
       axis: hasCyl ? hmAxis : null,
@@ -199,8 +203,8 @@ export default function Heatmap({ authUser, stock, setStock, txns, setTxns }) {
       if (!response.ok) throw new Error("সার্ভার ডাটা গ্রহণ করেনি!");
 
       setStock(prev => {
-        const gStock = prev[hmGlass] || {};
-        return { ...prev, [hmGlass]: { ...gStock, [hmSel.stockKey]: currentQty + delta } };
+        const gStock = prev[syntheticGlassId] || {};
+        return { ...prev, [syntheticGlassId]: { ...gStock, [hmSel.stockKey]: currentQty + delta } };
       });
 
       const timestamp = new Date().toISOString();
@@ -225,6 +229,39 @@ export default function Heatmap({ authUser, stock, setStock, txns, setTxns }) {
   const cellBg = (q) => { if(q===null||q===0)return "var(--bg-main)"; if(q<=2)return"#7c1d0e"; if(q<=5)return"#854d0e"; if(q<=10)return"#14532d"; return"#0f3d22"; };
   const cellFg = (q) => { if(q===null||q===0)return "var(--text-muted)"; if(q<=2)return"#fca5a5"; if(q<=5)return"#fde68a"; if(q<=10)return"#86efac"; return"#4ade80"; };
 
+  const OptionGrid = ({ items, selKey, setSelKey, cols = 2 }) => (
+    <div className={`grid grid-cols-${cols} gap-2 mb-2`}>
+      {items.map(item => {
+        const isSel = selKey === item.id;
+        return (
+          <button
+            key={item.id}
+            onClick={() => { setSelKey(item.id); setHmSel(null); }}
+            className="flex items-center gap-2 p-2 rounded-lg border text-left transition-all duration-200"
+            style={{
+              borderColor: isSel ? item.color : "var(--border-color)",
+              background: isSel ? `${item.color}15` : "var(--bg-main)",
+            }}
+          >
+            {item.icon && (
+              <div className="flex-shrink-0 text-sm w-5 text-center">
+                {item.icon}
+              </div>
+            )}
+            <div>
+              <div className="text-[11px] font-bold" style={{ color: isSel ? item.color : "var(--text-main)" }}>
+                {item.n}
+              </div>
+              <div className="text-[9px]" style={{ color: isSel ? item.color : "var(--text-muted)" }}>
+                {item.sub}
+              </div>
+            </div>
+          </button>
+        );
+      })}
+    </div>
+  );
+
   return (
     <div className="flex flex-col gap-10 animate-in fade-in duration-500 pb-10">
       
@@ -234,49 +271,38 @@ export default function Heatmap({ authUser, stock, setStock, txns, setTxns }) {
           <span>◈</span> লেন্স টাইপ নির্বাচন — পাওয়ার হিটম্যাপ
         </div>
 
-        <div className="grid grid-cols-[auto_1fr] border border-[var(--border-color)] rounded-xl overflow-hidden">
-          <div className="bg-[var(--bg-main)] border-r border-b border-[var(--border-color)] p-4 flex items-center justify-center">
-            <div className="text-[9px] text-[var(--text-muted)] text-center leading-relaxed font-bold tracking-widest uppercase">কোটিং<br/>↕<br/>ডিজাইন →</div>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+          <div>
+            <h3 className="text-[10px] font-black uppercase tracking-widest mb-3 flex items-center gap-2 text-[#34d399]"><span>🧪</span> উপাদান</h3>
+            <OptionGrid items={CATEGORIES.materials} selKey={hmMaterial} setSelKey={setHmMaterial} cols={1} />
           </div>
-
-          <div className="grid grid-cols-6 bg-[var(--bg-main)] border-b border-[var(--border-color)]">
-            {DESIGNS.map(d => (
-              <button key={d.id} onClick={()=>{setHmDesign(d.id); setHmSel(null);}}
-                className={`py-3 px-1 border-r border-[var(--border-color)] transition-all border-b-2 ${hmDesign===d.id ? "bg-[var(--bg-nav)] border-b-[#22d3ee]" : "border-b-transparent hover:bg-[var(--bg-nav)]"}`}>
-                <div className={`text-[10px] font-black ${hmDesign===d.id ? "text-[#22d3ee]" : "text-[var(--text-muted)]"}`}>{d.name}</div>
-                <div className="text-[8px] text-[var(--text-muted)]">{d.sub}</div>
-              </button>
-            ))}
+          <div>
+            <h3 className="text-[10px] font-black uppercase tracking-widest mb-3 flex items-center gap-2 text-[#f472b6]"><span>🎨</span> কোটিং</h3>
+            <OptionGrid items={CATEGORIES.coatings} selKey={hmCoating} setSelKey={setHmCoating} cols={1} />
           </div>
+          <div>
+            <h3 className="text-[10px] font-black uppercase tracking-widest mb-3 flex items-center gap-2 text-[#38bdf8]"><span>🌈</span> রং / টিন্ট</h3>
+            <OptionGrid items={CATEGORIES.colors} selKey={hmColor} setSelKey={setHmColor} cols={1} />
+          </div>
+        </div>
 
-          {finalCoatings.map((coat) => {
-            const isSelCoat = hmGlass === coat.id;
-            return (
-              <React.Fragment key={coat.id}>
-                <button onClick={()=>{setHmGlass(coat.id); setHmSel(null);}}
-                  className={`p-3 text-left border-r-2 border-b border-[var(--border-color)] transition-all min-w-[120px] ${isSelCoat ? "bg-[var(--bg-card)]" : "bg-[var(--bg-main)] hover:bg-[var(--bg-nav)]"}`}
-                  style={{borderRightColor: isSelCoat ? coat.accent : C.bdr}}>
-                  <div className={`text-[11px] font-black ${isSelCoat ? "text-[var(--text-main)]" : "text-[var(--text-main)]"}`} style={{color: isSelCoat ? coat.accent : undefined}}>{coat.name}</div>
-                  <div className="text-[9px] text-[var(--text-muted)]">{coat.subName || coat.tag}</div>
-                </button>
-
-                <div className="grid grid-cols-6 border-b border-[var(--border-color)]">
-                  {DESIGNS.map(des => {
-                    const stk = getDesignTotalStock(coat.id, des.id);
-                    const isActive = hmGlass === coat.id && hmDesign === des.id;
-                    const stockColor = stk === 0 ? "var(--text-muted)" : stk <= 5 ? C.yellow : C.green;
-                    return (
-                      <button key={des.id} onClick={()=>{setHmGlass(coat.id); setHmDesign(des.id); setHmSel(null);}}
-                        className={`p-3 border-r border-[var(--border-color)] transition-all flex flex-col items-center justify-center ${isActive ? "bg-[var(--bg-card)] ring-2 ring-[#22d3ee] ring-inset z-10" : "bg-[var(--bg-main)] hover:bg-[var(--bg-nav)]"}`}>
-                        <div className="text-xl font-black font-mono leading-none" style={{color:stockColor}}>{stk}</div>
-                        <div className="text-[8px] font-bold mt-1 opacity-70" style={{color:stockColor}}>পিস</div>
-                      </button>
-                    );
-                  })}
-                </div>
-              </React.Fragment>
-            );
-          })}
+        <div className="border-t border-[var(--border-color)] pt-6">
+            <h3 className="text-[10px] font-black uppercase tracking-widest mb-3 flex items-center gap-2 text-[#818cf8]"><span>🔍</span> ডিজাইন নির্বাচন</h3>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              {CATEGORIES.designs.map(des => {
+                const stk = getDesignTotalStock(des.id);
+                const isActive = hmDesign === des.id;
+                const stockColor = stk === 0 ? "var(--text-muted)" : stk <= 5 ? C.yellow : C.green;
+                return (
+                  <button key={des.id} onClick={()=>{setHmDesign(des.id); setHmSel(null);}}
+                    className={`p-4 rounded-xl border border-[var(--border-color)] transition-all flex flex-col items-center justify-center ${isActive ? "bg-[var(--bg-nav)] ring-2 ring-[#22d3ee] shadow-lg shadow-[#22d3ee]/20" : "bg-[var(--bg-main)] hover:bg-[var(--bg-nav)]"}`}>
+                    <div className="text-2xl font-black font-mono leading-none mb-2" style={{color:stockColor}}>{stk}</div>
+                    <div className="text-[11px] font-bold text-[var(--text-main)] mb-1">{des.n}</div>
+                    <div className="text-[9px] font-bold opacity-70" style={{color:stockColor}}>{stk > 0 ? "পিস স্টকে আছে" : "স্টক নেই"}</div>
+                  </button>
+                );
+              })}
+            </div>
         </div>
       </div>
 
@@ -286,7 +312,7 @@ export default function Heatmap({ authUser, stock, setStock, txns, setTxns }) {
         {/* RESPONSIVE 10-DEGREE AXIS SCROLLER */}
         <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-4 mb-6">
           <div className="text-sm font-black text-[var(--text-main)] flex items-center gap-2 whitespace-nowrap">
-            {activeG.name} <span className="text-[var(--text-muted)]">·</span> <span className="text-[#22d3ee]">{DESIGNS.find(d=>d.id===hmDesign)?.name}</span>
+            {activeName} <span className="text-[var(--text-muted)]">·</span> <span className="text-[#22d3ee]">{CATEGORIES.designs.find(d=>d.id===hmDesign)?.n}</span>
           </div>
 
           <div className="flex items-center gap-1.5 bg-[var(--bg-main)] p-1.5 rounded-xl border border-[var(--border-color)] max-w-full overflow-x-auto custom-scrollbar shadow-inner">
@@ -331,7 +357,7 @@ export default function Heatmap({ authUser, stock, setStock, txns, setTxns }) {
                     <button 
                       key={cyl} 
                       id={`cell-${sphIndex}-${cylIndex}`} 
-                      onClick={() => setHmSel(isSel ? null : {key:selKey, sph, cyl, glassId:hmGlass, qty:q, barcode:genBC(activeG.tag,sph,cyl,"0.00",hmDesign), stockKey})}
+                      onClick={() => setHmSel(isSel ? null : {key:selKey, sph, cyl, glassId:syntheticGlassId, qty:q, barcode:genBC("XX",sph,cyl,"0.00",hmDesign), stockKey})}
                       className="w-[42px] h-[26px] mx-[1px] rounded flex items-center justify-center transition-colors flex-shrink-0"
                       style={{background: isSel ? "#1d4ed8" : cellBg(q), border: `1px solid ${isSel ? "#60a5fa" : "var(--border-color)"}`, zIndex: isSel ? 5 : 1}}>
                       <span className={`text-[10px] font-black font-mono ${q === 0 ? "opacity-30" : ""}`} style={{color: isSel ? "#fff" : cellFg(q)}}>{q > 0 ? q : "·"}</span>

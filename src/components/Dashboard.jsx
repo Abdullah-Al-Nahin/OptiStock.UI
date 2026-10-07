@@ -1,6 +1,6 @@
 // src/components/Dashboard.jsx
 import React, { useMemo } from "react";
-import { C, GLASS_TYPES, fmtTk, today } from "../utils/constants";
+import { C, CATEGORIES, fmtTk, today } from "../utils/constants";
 import Skeleton, { CardSkeleton } from "./Skeleton"; 
 import { OptiLogo } from "./Icons"; 
 
@@ -33,17 +33,20 @@ export default function Dashboard({ stock, txns }) {
     let lowStockItems = 0;
     let outOfStockItems = 0; 
     
-    const glassStats = GLASS_TYPES.map(g => ({ ...g, qty: 0, combos: 0 }));
+    const glassStats = CATEGORIES.materials.map(g => ({ id: g.id, name: g.n, tag: g.sub, accent: g.color, qty: 0, combos: 0 }));
 
-    GLASS_TYPES.forEach((g, idx) => {
-      const gStock = (stock && stock[g.id]) || {};
-      const entries = Object.values(gStock);
+    Object.entries(stock || {}).forEach(([syntheticId, gStock]) => {
+      const matId = syntheticId.split("_")[0];
+      const idx = glassStats.findIndex(g => g.id === matId);
       
+      const entries = Object.values(gStock);
       entries.forEach(qty => {
         if (qty > 0) {
           totalStock += qty;
-          glassStats[idx].qty += qty;
-          glassStats[idx].combos += 1;
+          if (idx !== -1) {
+            glassStats[idx].qty += qty;
+            glassStats[idx].combos += 1;
+          }
           inStockItems++;
           if (qty <= 3) lowStockItems++;
         } else if (qty === 0) {
@@ -57,7 +60,7 @@ export default function Dashboard({ stock, txns }) {
     let todayImport = 0, todayPurchase = 0, todayWholesale = 0, todayRetail = 0, todayRev = 0;
     let monthRev = 0, monthQty = 0, monthCost = 0;
     
-    const revByCategory = GLASS_TYPES.reduce((acc, g) => ({ ...acc, [g.id]: 0 }), {});
+    const revByCategory = CATEGORIES.materials.reduce((acc, g) => ({ ...acc, [g.id]: 0 }), {});
 
     normalizedTxns.forEach(t => {
       if (t.date === today) {
@@ -71,7 +74,8 @@ export default function Dashboard({ stock, txns }) {
         if (t.direction === "out" && (t.subtype === "sale" || t.subtype === "use")) {
           monthRev += t.totalPrice;
           monthQty += t.qty;
-          if(revByCategory[t.glassType] !== undefined) revByCategory[t.glassType] += t.totalPrice;
+          const matId = t.glassType?.split("_")[0];
+          if(matId && revByCategory[matId] !== undefined) revByCategory[matId] += t.totalPrice;
         }
         if (t.direction === "in") monthCost += t.totalPrice;
       }
@@ -79,10 +83,10 @@ export default function Dashboard({ stock, txns }) {
 
     // 4. Revenue Progress Bars
     const maxRev = Math.max(...Object.values(revByCategory), 1);
-    const revBars = GLASS_TYPES.map(g => ({
+    const revBars = CATEGORIES.materials.map(g => ({
       id: g.id,
-      name: g.name,
-      accent: g.accent,
+      name: g.n,
+      accent: g.color,
       revenue: revByCategory[g.id] || 0,
       percent: ((revByCategory[g.id] || 0) / maxRev) * 100,
       totalPercent: monthRev > 0 ? ((revByCategory[g.id] || 0) / monthRev) * 100 : 0
@@ -159,7 +163,7 @@ export default function Dashboard({ stock, txns }) {
 
       {/* --- ROW 2: GLASS TYPE INVENTORY --- */}
       <div className="bg-[var(--bg-card)] border border-[var(--border-color)] rounded-2xl p-4 shadow-xl">
-        <h3 className="text-[10px] text-[var(--text-muted)] uppercase font-black tracking-widest mb-3 flex items-center gap-2"><span>◈</span> গ্লাস টাইপ অনুযায়ী মজুদ</h3>
+        <h3 className="text-[10px] text-[var(--text-muted)] uppercase font-black tracking-widest mb-3 flex items-center gap-2"><span>◈</span> উপাদান অনুযায়ী মজুদ (Materials)</h3>
         <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-3">
           {stats.glassStats.map(g => (
             <div key={g.id} className="bg-[var(--bg-main)] border border-[var(--border-color)] rounded-xl p-3 flex flex-col relative overflow-hidden">

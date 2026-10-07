@@ -1,6 +1,6 @@
 // src/components/Scanner.jsx
 import React, { useState, useMemo, useRef, useCallback } from "react";
-import { C, GLASS_TYPES, parseKey, makeKey, genBC, today, buildUPCEBars } from "../utils/constants";
+import { C, CATEGORIES, parseKey, makeKey, genBC, today, buildUPCEBars } from "../utils/constants";
 import { useToast } from "./ToastContext"; 
 import { OptiLogo } from "./Icons"; 
 
@@ -41,11 +41,22 @@ export default function Scanner({ authUser, stock, setStock, txns, setTxns }) {
     const map = {};
     const addEntry = (bc, entry) => { if (bc) map[bc.toUpperCase()] = entry; };
     
-    GLASS_TYPES.forEach(g => {
-      Object.entries(stock[g.id]||{}).forEach(([key, qty]) => {
+    Object.entries(stock).forEach(([syntheticId, qtyMap]) => {
+      const parts = syntheticId.split("_");
+      const matId = parts[0];
+      const coatId = parts[1];
+      const colId = parts[2];
+      
+      const mat = CATEGORIES.materials.find(m => m.id === matId);
+      if (!mat) return;
+      const coat = CATEGORIES.coatings.find(c => c.id === coatId);
+      const col = CATEGORIES.colors.find(c => c.id === colId);
+      const displayName = `${mat.n} (${coat?.n}, ${col?.n})`;
+      
+      Object.entries(qtyMap||{}).forEach(([key, qty]) => {
         const {sph, cyl, add} = parseKey(key); 
-        const bc = genBC(g.tag, sph, cyl, parseFloat(add)||0);
-        addEntry(bc, {glassType:g.id, glassName:g.name, sph, cyl, add: parseFloat(add)>0 ? "+"+parseFloat(add).toFixed(2) : "N/A", barcode:bc, stockKey:key, qty});
+        const bc = genBC(mat.sub || "XX", sph, cyl, parseFloat(add)||0);
+        addEntry(bc, {glassType:syntheticId, glassName:displayName, material:matId, coating:coatId, color:colId, sph, cyl, add: parseFloat(add)>0 ? "+"+parseFloat(add).toFixed(2) : "N/A", barcode:bc, stockKey:key, qty});
       });
     });
 
@@ -54,7 +65,7 @@ export default function Scanner({ authUser, stock, setStock, txns, setTxns }) {
         const addVal = tx.add==="N/A" ? "0" : tx.add.toString().replace("+",""); 
         const key = makeKey(tx.sph, tx.cyl, addVal); 
         const q = stock[tx.glassType]?.[key] ?? 0;
-        addEntry(tx.barcode, {glassType:tx.glassType, glassName:tx.glassName, sph:tx.sph, cyl:tx.cyl, add:tx.add, barcode:tx.barcode, stockKey:key, qty:q});
+        addEntry(tx.barcode, {glassType:tx.glassType, glassName:tx.glassName, material:tx.material, coating:tx.coating, color:tx.color, sph:tx.sph, cyl:tx.cyl, add:tx.add, barcode:tx.barcode, stockKey:key, qty:q});
       }
     });
     return map;
@@ -101,6 +112,9 @@ export default function Scanner({ authUser, stock, setStock, txns, setTxns }) {
       subtype: dir > 0 ? "purchase" : "sale",
       glassTypeId: result.glassType,
       glassName: result.glassName,
+      material: result.material,
+      coating: result.coating,
+      color: result.color,
       sph: parseFloat(result.sph),
       cyl: parseFloat(result.cyl),
       add: result.add === "N/A" ? "0.00" : result.add.toString().replace("+",""),

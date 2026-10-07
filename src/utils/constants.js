@@ -10,6 +10,34 @@ export const GLASS_TYPES = [
   { id:"bifocal_d",    name:"ডি-বাইফোকাল",   sub:"D-Bifocal",             accent:"#f472b6", bg:"#160010", tag:"BD" },
 ];
 
+export const CATEGORIES = {
+  materials: [
+    { id: "cr39", n: "CR-39 প্লাস্টিক", sub: "CR-39", icon: "🧊", color: "#d8b4fe" },
+    { id: "poly", n: "পলিকার্বোনেট", sub: "Polycarbonate", icon: "🛡️", color: "#38bdf8" },
+    { id: "trivex", n: "ট্রাইভেঞ্জ", sub: "Trivex", icon: "💎", color: "#818cf8" },
+    { id: "highidx", n: "হাই-ইনডেক্স ১.৬৭", sub: "High-Index 1.67", icon: "🔭", color: "#a78bfa" },
+    { id: "crown", n: "ক্রাউন গ্লাস", sub: "Crown Glass", icon: "🪟", color: "#7dd3fc" }
+  ],
+  coatings: [
+    { id: "white", n: "হোয়াইট", sub: "White (Plain)", icon: "⬜", color: "#e2e8f0" },
+    { id: "bc_green", n: "ব্লু কাট গ্রিন", sub: "Blue Cut Green", icon: "🟢", color: "#4ade80" },
+    { id: "bc_gold", n: "ব্লু কাট গোল্ডেন", sub: "Blue Cut Golden", icon: "🟡", color: "#facc15" },
+    { id: "bc_violet", n: "ব্লু কাট ভায়োলেট", sub: "Blue Cut Violet", icon: "🟣", color: "#c084fc" },
+    { id: "mc", n: "এমসি", sub: "MC (Multi-Coat)", icon: "✨", color: "#fb923c" }
+  ],
+  colors: [
+    { id: "clear", n: "সাদা (Clear)", sub: "Clear", icon: "🔵", color: "#60a5fa" },
+    { id: "photo", n: "ফটোক্রোমিক", sub: "Photochromic", icon: "🌓", color: "#a78bfa" },
+    { id: "tint", n: "কালারিং", sub: "Tinted/Color", icon: "🎨", color: "#fb7185" }
+  ],
+  designs: [
+    { id: "single_vision", n: "সিঙ্গেল ভিশন", sub: "Single Vision", icon: "🟦", color: "#38bdf8" },
+    { id: "bifocal_moon", n: "মুন বাইফোকাল", sub: "Moon Bifocal", icon: "🌙", color: "#94a3b8" },
+    { id: "bifocal_d", n: "ডি-বাইফোকাল", sub: "D-Bifocal", icon: "🪟", color: "#94a3b8" },
+    { id: "progressive", n: "প্রগ্রেসিভ", sub: "Progressive", icon: "📈", color: "#94a3b8" }
+  ]
+};
+
 export const IN_SUB  = [{id:"import",label:"আমদানি",icon:"🚢"},{id:"purchase",label:"ক্রয়",icon:"🛒"}];
 export const OUT_SUB = [{id:"sale",label:"পাইকারি",icon:"💰"},{id:"use",label:"খুচরা",icon:"🏪"},{id:"broken",label:"ভাঙা",icon:"💔"}];
 

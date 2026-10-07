@@ -1,6 +1,6 @@
 // src/App.jsx
 import React, { useState, useMemo, useEffect } from "react";
-import { C, GLASS_TYPES, fmtTk, today, makeKey, API_BASE_URL } from "./utils/constants"; 
+import { C, fmtTk, today, makeKey, API_BASE_URL } from "./utils/constants"; 
 import { useToast } from "./components/ToastContext"; 
 
 // --- IMPORTING OUR MODULAR COMPONENTS ---
@@ -130,7 +130,8 @@ function MainApp({ authUser, onLogout }) {
           const newStockState = {};
           
           cloudStock.forEach(entry => {
-            if (!newStockState[entry.glassTypeId]) newStockState[entry.glassTypeId] = {};
+            const syntheticGlassId = `${entry.material}_${entry.coating}_${entry.color}`;
+            if (!newStockState[syntheticGlassId]) newStockState[syntheticGlassId] = {};
             
             const formatPower = (num) => (num === 0 ? "0.00" : num > 0 ? `+${num.toFixed(2)}` : num.toFixed(2));
             const sphStr = formatPower(entry.sph);
@@ -142,7 +143,7 @@ function MainApp({ authUser, onLogout }) {
             
             const key = `${baseKey}_ax${entry.axis || 0}`;
             
-            newStockState[entry.glassTypeId][key] = entry.qty;
+            newStockState[syntheticGlassId][key] = entry.qty;
           });
           setStock(newStockState);
         } else {

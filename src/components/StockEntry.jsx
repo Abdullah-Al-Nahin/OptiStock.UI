@@ -2,7 +2,7 @@
 import React, { useState, useMemo, useEffect } from "react";
 import { 
   IN_SUB, OUT_SUB, SM, SPH_LIST, CYL_LIST, 
-  C, makeKey, genBC, fmtTk, buildUPCEBars
+  C, makeKey, genBC, fmtTk, buildUPCEBars, CATEGORIES
 } from "../utils/constants";
 import { useToast } from "./ToastContext"; 
 import Skeleton from "./Skeleton"; 
@@ -28,13 +28,13 @@ function BarcodeStrip({ code, height=58 }) {
   );
 }
 
-const DESIGNS = [
-  {id:"single_vision", n:"সিঙ্গেল ভিশন", sub:"Single Vision"}, 
-  {id:"bifocal_moon", n:"মুন বাইফোকাল", sub:"Moon Bifocal"}, 
-  {id:"bifocal_d", n:"ডি-বাইফোকাল", sub:"D-Bifocal"}, 
-  {id:"progressive", n:"প্রগ্রেসিভ", sub:"Progressive/Varilux"}, 
-  {id:"high_index", n:"হাই ইনডেক্স", sub:"High Index"}, 
-  {id:"polycarbonate", n:"পলিকার্বোনেট", sub:"Polycarbonate"}
+
+
+const TXN_TYPES = [
+  { id: "import", n: "আমদানি", icon: "🚢", type: "in", color: "#2dd4bf" },
+  { id: "purchase", n: "ক্রয়", icon: "🛒", type: "in", color: "#4ade80" },
+  { id: "sale", n: "পাইকারি", icon: "💰", type: "out", color: "#fb7185" },
+  { id: "use", n: "খুচরা", icon: "🏪", type: "out", color: "#fb923c" }
 ];
 
 export default function StockEntry({ authUser, stock, setStock, txns, setTxns }) {
@@ -42,66 +42,53 @@ export default function StockEntry({ authUser, stock, setStock, txns, setTxns })
   const API_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000";
 
   const [form, setForm] = useState({
-    direction: "in", subtype: "purchase", glassType: "", glassDesign: "single_vision",
+    subtype: "purchase", // Will also dictate direction
+    material: "cr39", coating: "white", color: "clear", glassDesign: "single_vision",
     sph: "-1.50", cyl: "0.00", axis: "90", add: "0.00", qty: "1", unitPrice: "", note: "", customerName: "" 
   });
 
-  const [dbGlassTypes, setDbGlassTypes] = useState([]);
-  const [isLoadingGlasses, setIsLoadingGlasses] = useState(true);
-
-  useEffect(() => {
-    const fetchGlassTypes = async () => {
-      try {
-        const response = await fetch(`${API_URL}/api/GlassTypes`, {
-            headers: { "Authorization": `Bearer ${authUser.token}` }
-        });
-        if (!response.ok) throw new Error("Failed to fetch");
-        const data = await response.json();
-        setDbGlassTypes(data);
-        
-        const targetCoatings = ["হোয়াইট", "ব্লু কাট", "ফটোক্রোমিক", "এমসি"];
-        const validData = data.filter(g => targetCoatings.includes(g.name));
-        if (validData.length > 0) {
-            setForm(prev => ({ ...prev, glassType: validData[0].id }));
-        }
-      } catch (err) {
-        toast.error("গ্লাসের তথ্য লোড করা সম্ভব হয়নি!");
-      } finally {
-        setIsLoadingGlasses(false);
-      }
-    };
-    fetchGlassTypes();
-  }, [authUser.token, API_URL, toast]);
+  const activeTxnType = TXN_TYPES.find(t => t.id === form.subtype) || TXN_TYPES[1];
+  const direction = activeTxnType.type;
 
   const showAdd = ["progressive","bifocal_moon","bifocal_d"].includes(form.glassDesign);
   
-  // ROBUST AXIS & CYL PARSING
   const hasCylVal = form.cyl && parseFloat(form.cyl) !== 0;
   const currentAxis = hasCylVal ? (parseInt(form.axis, 10) || 0) : 0;
+  
+  // Create a robust glass ID for the new model (temporarily using combined string)
+  const syntheticGlassId = `${form.material}_${form.coating}_${form.color}`;
+  
   const baseKey = makeKey(form.sph, form.cyl, showAdd ? form.add : "0.00", form.glassDesign);
   const entryKey = `${baseKey}_ax${currentAxis}`;
   
-  const curStock = stock[form.glassType]?.[entryKey] || 0;
+  const curStock = stock[syntheticGlassId]?.[entryKey] || 0;
   const unitPriceNum = parseFloat(form.unitPrice) || 0;
   const totalPrice = unitPriceNum * parseInt(form.qty || 1);
 
   const handleEntry = async () => {
     const qty = parseInt(form.qty);
     if (!qty || qty < 1) return toast.warning("সঠিক পরিমাণ দিন!");
-    const isIn = form.direction === "in";
+    const isIn = direction === "in";
     if (!isIn && curStock < qty) return toast.error(`স্টক অপর্যাপ্ত! বর্তমানে আছে মাত্র ${curStock} পিস।`);
 
-    const gt = dbGlassTypes.find(g => g.id === form.glassType);
-    if (!gt) return toast.warning("গ্লাসের ডাটা লোড হচ্ছে, অপেক্ষা করুন।");
+    // Get display names
+    const mName = CATEGORIES.materials.find(m => m.id === form.material)?.n;
+    const cName = CATEGORIES.coatings.find(c => c.id === form.coating)?.n;
+    const clName = CATEGORIES.colors.find(c => c.id === form.color)?.n;
+    const dName = CATEGORIES.designs.find(d => d.id === form.glassDesign)?.n;
 
-    const bc = genBC(gt.tag, form.sph, form.cyl, showAdd ? form.add : "0.00", form.glassDesign);
+    const syntheticGlassName = `${mName} - ${cName} - ${clName}`;
+    const bc = genBC("XX", form.sph, form.cyl, showAdd ? form.add : "0.00", form.glassDesign);
     const invNo = !isIn ? "INV-" + Math.floor(1000 + Math.random() * 9000) : "";
 
     const newTransaction = {
-      direction: form.direction,
+      direction: direction,
       subtype: form.subtype,
-      glassTypeId: form.glassType, 
-      glassName: gt.name,
+      glassTypeId: syntheticGlassId, // Temporarily using combined ID
+      glassName: syntheticGlassName, // e.g. "CR-39 - White - Clear"
+      material: form.material, // FOR OPTION 2
+      coating: form.coating,   // FOR OPTION 2
+      color: form.color,       // FOR OPTION 2
       design: form.glassDesign, 
       sph: parseFloat(form.sph),
       cyl: parseFloat(form.cyl),
@@ -118,33 +105,29 @@ export default function StockEntry({ authUser, stock, setStock, txns, setTxns })
     try {
       const response = await fetch(`${API_URL}/api/Transactions`, {
         method: "POST",
-        headers: { 
-            "Content-Type": "application/json",
-            "Authorization": `Bearer ${authUser.token}` 
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(newTransaction)
       });
 
       if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        console.error("Backend Error:", errorData); 
-        throw new Error(errorData.error || errorData.message || "সার্ভারে ডাটা সেভ হতে সমস্যা হয়েছে!");
+        const errData = await response.json().catch(() => ({}));
+        throw new Error(errData.message || "Failed to submit transaction.");
       }
+
+      const savedTxn = await response.json();
 
       toast.success("এন্ট্রি সফলভাবে সম্পন্ন হয়েছে!");
       setStock(prev => {
-        const gStock = prev[form.glassType] || {};
-        return { ...prev, [form.glassType]: { ...gStock, [entryKey]: (gStock[entryKey] || 0) + (isIn ? qty : -qty) } };
+        const gStock = prev[syntheticGlassId] || {};
+        return { ...prev, [syntheticGlassId]: { ...gStock, [entryKey]: (gStock[entryKey] || 0) + (isIn ? qty : -qty) } };
       });
 
-      const timestamp = new Date().toISOString();
+      // Format time safely for the list
+      const timestampDate = new Date(savedTxn.timestamp);
       setTxns(prev => [{
-        ...newTransaction, 
-        id: Date.now(), 
-        timestamp,
-        date: timestamp.split('T')[0],
-        // 🚀 THE FIX: Now saving the exact time with seconds!
-        time: new Date().toLocaleTimeString("en-GB", { hour: '2-digit', minute: '2-digit', second: '2-digit' })
+        ...savedTxn,
+        date: timestampDate.toISOString().split('T')[0],
+        time: timestampDate.toLocaleTimeString("en-GB", { hour: '2-digit', minute: '2-digit', second: '2-digit' })
       }, ...prev]);
       
       setForm(f => ({ ...f, qty: "1", unitPrice: "", note: "", customerName: "" }));
@@ -153,6 +136,45 @@ export default function StockEntry({ authUser, stock, setStock, txns, setTxns })
     }
   };
 
+  const SectionTitle = ({ icon, text, color }) => (
+    <h3 className="text-[10px] font-black uppercase tracking-widest mb-3 flex items-center gap-2" style={{ color }}>
+      <span>{icon}</span> {text}
+    </h3>
+  );
+
+  const OptionGrid = ({ items, selKey, cols = 2 }) => (
+    <div className={`grid grid-cols-${cols} gap-2 mb-5`}>
+      {items.map(item => {
+        const isSel = form[selKey] === item.id;
+        return (
+          <button
+            key={item.id}
+            onClick={() => setForm(p => ({ ...p, [selKey]: item.id }))}
+            className="flex items-center gap-2 p-2 rounded-lg border text-left transition-all duration-200"
+            style={{
+              borderColor: isSel ? item.color : "var(--border-color)",
+              background: isSel ? `${item.color}15` : "var(--bg-main)",
+            }}
+          >
+            {item.icon && (
+              <div className="flex-shrink-0 text-sm w-5 text-center">
+                {item.icon}
+              </div>
+            )}
+            <div>
+              <div className="text-[11px] font-bold" style={{ color: isSel ? item.color : "var(--text-main)" }}>
+                {item.n}
+              </div>
+              <div className="text-[9px]" style={{ color: isSel ? item.color : "var(--text-muted)" }}>
+                {item.sub}
+              </div>
+            </div>
+          </button>
+        );
+      })}
+    </div>
+  );
+
   return (
     <div className="animate-in fade-in duration-500 space-y-10 pb-10">
       
@@ -160,89 +182,53 @@ export default function StockEntry({ authUser, stock, setStock, txns, setTxns })
         
         {/* LEFT: FORM SECTION */}
         <div className="lg:col-span-3 bg-[var(--bg-card)] p-6 rounded-2xl border border-[var(--border-color)] shadow-2xl">
-          <h2 className="text-lg font-black text-[#22d3ee] mb-6 flex items-center gap-2">⊕ স্টক এন্ট্রি ফর্ম</h2>
-
-          <div className="mb-6">
-            <div style={lbl}>এন্ট্রির ধরন</div>
-            <div className="grid grid-cols-2 gap-4 mb-4">
-              {[{v:"in", l:"⬇ স্টক ইন", c:C.green}, {v:"out", l:"⬆ স্টক আউট", c:C.red}].map(d => (
-                <button key={d.v} onClick={() => setForm({...form, direction: d.v, subtype: d.v==="in"?"purchase":"sale"})} 
-                  style={{padding:"12px", borderRadius:"8px", border:`2px solid ${form.direction===d.v ? d.c : C.bdr}`, background: form.direction===d.v ? d.c+"14" : "transparent", color: form.direction===d.v ? d.c : "var(--text-muted)", fontWeight: "bold", cursor:"pointer", transition: "all 0.2s"}}>
-                  {d.l}
+          
+          {/* TOP BUTTONS: ENTRY TYPE */}
+          <div className="grid grid-cols-4 gap-3 mb-6">
+            {TXN_TYPES.map(t => {
+              const isSel = form.subtype === t.id;
+              return (
+                <button
+                  key={t.id}
+                  onClick={() => setForm({ ...form, subtype: t.id })}
+                  className="flex flex-col items-center justify-center py-3 rounded-xl border transition-all"
+                  style={{
+                    borderColor: isSel ? t.color : "var(--border-color)",
+                    background: isSel ? `${t.color}15` : "var(--bg-main)",
+                    color: isSel ? t.color : "var(--text-muted)",
+                    boxShadow: isSel ? `0 0 15px ${t.color}20` : "none"
+                  }}
+                >
+                  <div className="text-xl mb-1">{t.icon}</div>
+                  <div className="text-xs font-bold">{t.n}</div>
                 </button>
-              ))}
-            </div>
-            
-            <div style={lbl}>{form.direction==="in" ? "ইনের ধরন" : "আউটের ধরন"}</div>
-            <div className={`grid ${form.direction==="out" ? "grid-cols-3" : "grid-cols-2"} gap-3`}>
-              {(form.direction==="in" ? IN_SUB : OUT_SUB).map(st => {
-                const sm = SM[st.id]; const isActive = form.subtype === st.id;
-                return (
-                  <button key={st.id} onClick={() => setForm({...form, subtype: st.id})} 
-                    style={{padding:"10px", borderRadius:"8px", border:`2px solid ${isActive ? sm.color : C.bdr}`, background: isActive ? sm.color+"14" : "transparent", color: isActive ? sm.color : "var(--text-muted)", cursor:"pointer", transition: "all 0.2s"}}>
-                    <div className="text-xl mb-1">{sm.icon}</div>
-                    <div className="text-[10px] font-bold">{sm.label}</div>
-                  </button>
-                );
-              })}
-            </div>
+              );
+            })}
+          </div>
 
-            {form.direction === "out" && (
-              <div className="mt-5 animate-in slide-in-from-top-2">
-                <div style={{...lbl, color:"#f472b6"}}>গ্রাহকের নাম (ঐচ্ছিক)</div>
-                <input type="text" placeholder="গ্রাহকের নাম লিখুন..." value={form.customerName} onChange={e => setForm({...form, customerName: e.target.value})} style={{...inp, border:"1px solid #f472b640"}} />
-              </div>
-            )}
+          {direction === "out" && (
+            <div className="mb-6 animate-in slide-in-from-top-2">
+              <div style={{...lbl, color:"#f472b6"}}>গ্রাহকের নাম (ঐচ্ছিক)</div>
+              <input type="text" placeholder="গ্রাহকের নাম লিখুন..." value={form.customerName} onChange={e => setForm({...form, customerName: e.target.value})} style={{...inp, border:"1px solid #f472b640"}} />
+            </div>
+          )}
+
+          <div className="bg-[var(--bg-main)] p-4 rounded-xl border border-[var(--border-color)] mb-6">
+            <SectionTitle icon="🧪" text="উপাদান (MATERIAL)" color="#34d399" />
+            <OptionGrid items={CATEGORIES.materials} selKey="material" cols={2} />
+
+            <SectionTitle icon="🎨" text="কোটিং (COATING)" color="#f472b6" />
+            <OptionGrid items={CATEGORIES.coatings} selKey="coating" cols={2} />
+
+            <SectionTitle icon="🌈" text="রং / টিন্ট (COLOR)" color="#38bdf8" />
+            <OptionGrid items={CATEGORIES.colors} selKey="color" cols={3} />
+
+            <SectionTitle icon="🔍" text="লেন্স ডিজাইন" color="#818cf8" />
+            <OptionGrid items={CATEGORIES.designs} selKey="glassDesign" cols={2} />
           </div>
 
           <div className="bg-[var(--bg-main)] p-4 rounded-xl border border-[var(--border-color)] mb-6">
-            <h3 className="text-[10px] font-black text-[#22d3ee] uppercase tracking-widest mb-4">◈ লেন্স টাইপ নির্বাচন</h3>
-            
-            <div style={lbl}>কোটিং</div>
-            {isLoadingGlasses ? (
-              <div className="grid grid-cols-2 gap-3 mb-5">
-                 <Skeleton className="h-14 w-full opacity-10" />
-                 <Skeleton className="h-14 w-full opacity-10" />
-              </div>
-            ) : (
-              <div className="grid grid-cols-2 gap-3 mb-5">
-                {dbGlassTypes
-                  .filter(g => ["হোয়াইট", "ব্লু কাট", "ফটোক্রোমিক", "এমসি"].includes(g.name))
-                  .map(g => (
-                  <button key={g.id} onClick={() => setForm({...form, glassType: g.id})} 
-                    style={{padding:"10px", borderRadius:"10px", border:`2px solid ${form.glassType===g.id ? g.accentColor : "var(--border-color)"}`, background: form.glassType===g.id ? g.accentColor+"14" : "transparent", textAlign:"left", display:"flex", gap:"10px", alignItems:"center", cursor:"pointer", transition: "all 0.2s"}}>
-                    <div style={{width:12, height:12, borderRadius:"50%", background: g.accentColor, boxShadow: form.glassType===g.id ? `0 0 10px ${g.accentColor}` : "none"}}/>
-                    <div>
-                      <div style={{fontSize:"13px", fontWeight:"bold", color: "var(--text-main)"}}>{g.name}</div>
-                      <div style={{fontSize:"10px", color:"var(--text-muted)"}}>{g.subName}</div>
-                    </div>
-                  </button>
-                ))}
-              </div>
-            )}
-
-            <div style={lbl}>লেন্স ডিজাইন</div>
-            <div className="grid grid-cols-3 gap-3 mb-5">
-              {DESIGNS.map(d => (
-                <button key={d.id} onClick={() => setForm({...form, glassDesign: d.id})} 
-                  style={{padding:"10px", borderRadius:"10px", border:`2px solid ${form.glassDesign===d.id ? "#22d3ee" : "var(--border-color)"}`, background: form.glassDesign===d.id ? "var(--bg-card)" : "transparent", textAlign:"left", cursor:"pointer", transition: "all 0.2s"}}>
-                  <div style={{fontSize:"12px", fontWeight:"bold", color: form.glassDesign===d.id ? "#22d3ee" : "var(--text-main)"}}>{d.n}</div>
-                  <div style={{fontSize:"9px", color: form.glassDesign===d.id ? "#22d3ee" : "var(--text-muted)", opacity: 0.8}}>{d.sub}</div>
-                </button>
-              ))}
-            </div>
-
-            <div className="bg-[var(--bg-card)] p-3 rounded-lg border border-[var(--border-color)] flex items-center gap-3">
-                <span className="text-[10px] text-[var(--text-muted)] uppercase tracking-wider">নির্বাচিত লেন্স</span>
-                <div style={{width:10, height:10, borderRadius:"50%", background: dbGlassTypes.find(g => g.id === form.glassType)?.accentColor || "#fff"}} />
-                <span className="text-[12px] font-bold text-[var(--text-main)]">{dbGlassTypes.find(g => g.id === form.glassType)?.name || "---"}</span>
-                <span className="text-[12px] text-[var(--text-muted)]">+</span>
-                <span className="text-[12px] font-bold text-[#22d3ee]">{DESIGNS.find(d => d.id === form.glassDesign)?.n || "---"}</span>
-            </div>
-          </div>
-
-          <div className="bg-[var(--bg-main)] p-4 rounded-xl border border-[var(--border-color)] mb-6">
-            <h3 className="text-[10px] font-black text-[#22d3ee] uppercase tracking-widest mb-4">◈ প্রেসক্রিপশন পাওয়ার</h3>
+            <h3 className="text-[10px] font-black text-[#22d3ee] uppercase tracking-widest mb-4 flex items-center gap-2"><span>◈</span> প্রেসক্রিপশন পাওয়ার</h3>
             
             <div className="flex flex-wrap gap-4 mb-4">
               <div className="flex-1 min-w-[130px]">
@@ -277,19 +263,19 @@ export default function StockEntry({ authUser, stock, setStock, txns, setTxns })
 
             <div className="bg-[var(--bg-card)] p-3 rounded-lg border border-[var(--border-color)] text-center">
                <div className="text-[8px] text-[var(--text-muted)] uppercase mb-2">বারকোড প্রিভিউ</div>
-               <BarcodeStrip code={genBC(dbGlassTypes.find(g=>g.id===form.glassType)?.tag||"XX", form.sph, form.cyl, showAdd ? form.add : "0.00", form.glassDesign)} height={50} />
+               <BarcodeStrip code={genBC("XX", form.sph, form.cyl, showAdd ? form.add : "0.00", form.glassDesign)} height={50} />
             </div>
           </div>
 
           <div className="grid grid-cols-3 gap-4 mb-6">
             <div><div style={lbl}>পরিমাণ</div><input type="number" min="1" value={form.qty} onChange={e => setForm({...form, qty: e.target.value})} style={inp} /></div>
-            <div><div style={{...lbl, color: form.direction==="in" ? C.green : C.rose}}>{form.direction==="in" ? "ক্রয় মূল্য" : "বিক্রয় মূল্য"}</div><input type="number" placeholder="০.০০" value={form.unitPrice} onChange={e => setForm({...form, unitPrice: e.target.value})} style={inp} /></div>
-            <div><div style={lbl}>মোট মূল্য</div><div style={{...inp, color: form.direction==="in" ? C.green : C.rose, fontWeight:"bold"}}>{fmtTk(totalPrice)}</div></div>
+            <div><div style={{...lbl, color: direction==="in" ? C.green : C.rose}}>{direction==="in" ? "ক্রয় মূল্য" : "বিক্রয় মূল্য"}</div><input type="number" placeholder="০.০০" value={form.unitPrice} onChange={e => setForm({...form, unitPrice: e.target.value})} style={inp} /></div>
+            <div><div style={lbl}>মোট মূল্য</div><div style={{...inp, color: direction==="in" ? C.green : C.rose, fontWeight:"bold"}}>{fmtTk(totalPrice)}</div></div>
           </div>
 
           <button onClick={handleEntry} className={`w-full py-4 rounded-xl font-black uppercase tracking-widest text-white text-sm shadow-lg transition-all active:scale-95
-            ${form.direction === "in" ? "bg-gradient-to-r from-[#16a34a] to-[#22c55e]" : "bg-gradient-to-r from-[#dc2626] to-[#f87171]"}`}>
-            {SM[form.subtype].icon} {form.direction==="in" ? "স্টক ইন নিশ্চিত করুন" : "স্টক আউট নিশ্চিত করুন"}
+            ${direction === "in" ? "bg-gradient-to-r from-[#16a34a] to-[#22c55e]" : "bg-gradient-to-r from-[#dc2626] to-[#f87171]"}`}>
+            {activeTxnType.icon} {direction==="in" ? "স্টক ইন নিশ্চিত করুন" : "স্টক আউট নিশ্চিত করুন"}
           </button>
         </div>
 
@@ -301,12 +287,12 @@ export default function StockEntry({ authUser, stock, setStock, txns, setTxns })
               <div className="opacity-50 text-center text-sm italic text-[var(--text-muted)] py-20">নতুন এন্ট্রি করলে এখানে দেখা যাবে...</div>
             ) : (
               txns.map((tx) => {
-                 const sm = SM[tx.subtype]||{};
+                 const tType = TXN_TYPES.find(t => t.id === tx.subtype) || { color: "#94a3b8", n: tx.subtype };
                  return (
                   <div key={tx.id} className="bg-[var(--bg-main)] border border-[var(--border-color)] p-4 rounded-xl flex justify-between items-center animate-in slide-in-from-right-4 duration-300">
                     <div>
                       <div className="flex items-center gap-2 mb-1">
-                        <span style={{background:sm.color+"22", color:sm.color}} className="text-[10px] font-black px-2 py-0.5 rounded-md border border-current">{sm.label}</span>
+                        <span style={{background:tType.color+"22", color:tType.color}} className="text-[10px] font-black px-2 py-0.5 rounded-md border border-current">{tType.n}</span>
                         <span className="text-xs font-bold text-[var(--text-main)]">{tx.glassName}</span>
                       </div>
                       <div className="text-[9px] font-mono text-[var(--text-muted)]">◫ {tx.barcode} {tx.axis !== null && tx.axis !== undefined ? `| Axis: ${tx.axis}°` : ""}</div>
@@ -315,7 +301,6 @@ export default function StockEntry({ authUser, stock, setStock, txns, setTxns })
                       <div className={`font-mono font-black text-lg ${tx.direction === "in" ? "text-[#4ade80]" : "text-[#f87171]"}`}>
                         {tx.direction === "in" ? "+" : "-"}{tx.qty}
                       </div>
-                      {/* 🚀 EXACT TIME DISPLAY ADDED HERE */}
                       <div className="text-[8px] text-[var(--text-muted)] font-mono mt-1 tracking-widest">{tx.time}</div>
                     </div>
                   </div>

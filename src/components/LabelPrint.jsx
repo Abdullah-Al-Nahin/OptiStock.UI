@@ -1,6 +1,6 @@
 // src/components/LabelPrint.jsx
 import React, { useState, useMemo } from "react";
-import { GLASS_TYPES, buildUPCEBars, parseKey, genBC, C } from "../utils/constants";
+import { CATEGORIES, buildUPCEBars, parseKey, genBC, C } from "../utils/constants";
 import { useToast } from "./ToastContext"; 
 import Skeleton from "./Skeleton"; 
 import { OptiLogo } from "./Icons"; 
@@ -33,30 +33,38 @@ function upceSVGString(code, height = 45) {
 
 export default function LabelPrint({ stock }) {
   const toast = useToast();
-  const [selGlass, setSelGlass] = useState(GLASS_TYPES[0].id);
+  const [selGlass, setSelGlass] = useState(CATEGORIES.materials[0].id);
   const [printQueue, setPrintQueue] = useState([]); 
   const [copiesInput, setCopiesInput] = useState({}); 
 
-  // Extract available stock
   const availableItems = useMemo(() => {
     const items = [];
-    const gType = GLASS_TYPES.find(g => g.id === selGlass);
-    if (!gType || !stock[selGlass]) return items;
+    const mat = CATEGORIES.materials.find(g => g.id === selGlass);
+    if (!mat) return items;
 
-    Object.entries(stock[selGlass]).forEach(([key, qty]) => {
-      if (qty > 0) {
-        const { sph, cyl, add, design } = parseKey(key);
-        const bc = genBC(gType.tag, sph, cyl, add, design);
-        let pwrStr = `S${sph} C${cyl}`;
-        if (add !== "0.00" && add !== "0" && add !== "+0.00") pwrStr += ` A${add}`;
-        
-        items.push({
-          key, barcode: bc, glassName: gType.name, design: design.replace("_", " ").toUpperCase(),
-          power: pwrStr, stockQty: qty
-        });
-      }
+    Object.entries(stock).forEach(([syntheticId, gStock]) => {
+      if (syntheticId.split("_")[0] !== selGlass) return;
+      const [m, coat, col] = syntheticId.split("_");
+      const cName = CATEGORIES.coatings.find(c => c.id === coat)?.n;
+      const oName = CATEGORIES.colors.find(c => c.id === col)?.n;
+      const glassName = `${mat.n} (${cName}, ${oName})`;
+
+      Object.entries(gStock || {}).forEach(([key, qty]) => {
+        if (qty > 0) {
+          const { sph, cyl, add } = parseKey(key);
+          const bc = genBC(mat.sub || "XX", sph, cyl, add);
+          let pwrStr = `S${sph} C${cyl}`;
+          if (add !== "0.00" && add !== "0" && add !== "+0.00") pwrStr += ` A${add}`;
+          
+          items.push({
+            key: syntheticId + key, barcode: bc, glassName: glassName, design: "",
+            power: pwrStr, stockQty: qty,
+            sortKey: pwrStr
+          });
+        }
+      });
     });
-    return items.sort((a, b) => a.power.localeCompare(b.power)); 
+    return items.sort((a, b) => a.sortKey.localeCompare(b.sortKey)); 
   }, [stock, selGlass]);
 
   const addToQueue = (item) => {
@@ -133,16 +141,16 @@ export default function LabelPrint({ stock }) {
           <h2 className="text-lg font-black text-[#22d3ee] mb-6 flex items-center gap-2"><span>🏷️</span> লেবেল প্রিন্ট জেনারেটর</h2>
           
           <div className="flex gap-2 overflow-x-auto pb-4 mb-2 custom-scrollbar">
-            {GLASS_TYPES.map(g => (
+            {CATEGORIES.materials.map(g => (
               <button key={g.id} onClick={() => setSelGlass(g.id)} 
                 className={`px-5 py-2.5 rounded-xl text-xs font-black border whitespace-nowrap transition-all active:scale-95 ${selGlass === g.id ? "bg-[var(--bg-nav)] border-[#22d3ee] text-[#22d3ee] shadow-[0_0_15px_rgba(34,211,238,0.2)]" : "bg-[var(--bg-main)] border-[var(--border-color)] text-[var(--text-muted)] hover:text-[var(--text-main)]"}`}>
-                {g.name}
+                {g.n}
               </button>
             ))}
           </div>
 
           <div className="flex-1 overflow-y-auto border border-[var(--border-color)] rounded-2xl bg-[var(--bg-main)] custom-scrollbar">
-            {!stock[selGlass] ? (
+            {!Object.keys(stock).some(k => k.startsWith(selGlass)) ? (
                <div className="p-6 space-y-4">
                   {[...Array(8)].map((_, i) => <Skeleton key={i} className="h-12 w-full opacity-10 rounded-lg" />)}
                </div>

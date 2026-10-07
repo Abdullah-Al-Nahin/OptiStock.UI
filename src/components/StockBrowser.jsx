@@ -1,6 +1,6 @@
 // src/components/StockBrowser.jsx
 import React, { useState, useMemo } from "react";
-import { C, GLASS_TYPES, parseKey, genBC, API_BASE_URL } from "../utils/constants";
+import { C, CATEGORIES, parseKey, genBC, API_BASE_URL } from "../utils/constants";
 import Skeleton from "./Skeleton"; 
 import { OptiLogo } from "./Icons"; 
 import { useToast } from "./ToastContext"; 
@@ -9,7 +9,9 @@ const inpStyle = { padding: "10px 14px", borderRadius: 10, border: "1px solid va
 
 export default function StockBrowser({ stock, setStock, authUser }) {
   const toast = useToast();
-  const [filterGlass, setFilterGlass] = useState("all");
+  const [filterMaterial, setFilterMaterial] = useState("all");
+  const [filterCoating, setFilterCoating] = useState("all");
+  const [filterColor, setFilterColor] = useState("all");
   const [filterSph, setFilterSph] = useState("");
   const [filterCyl, setFilterCyl] = useState("");
   const [filterAxis, setFilterAxis] = useState("");
@@ -17,17 +19,27 @@ export default function StockBrowser({ stock, setStock, authUser }) {
   const [isDeleting, setIsDeleting] = useState(false); 
 
   const resetFilters = () => {
-    setFilterGlass("all"); setFilterSph(""); setFilterCyl(""); setFilterAxis(""); setInStockOnly(true);
+    setFilterMaterial("all"); setFilterCoating("all"); setFilterColor("all"); setFilterSph(""); setFilterCyl(""); setFilterAxis(""); setInStockOnly(true);
   };
 
   const tableData = useMemo(() => {
     if (!stock) return [];
     let list = [];
     
-    GLASS_TYPES.forEach(g => {
-      if (filterGlass !== "all" && g.id !== filterGlass) return;
+    Object.entries(stock).forEach(([syntheticId, gStock]) => {
+      const [matId, coatId, colId] = syntheticId.split("_");
       
-      const gStock = stock[g.id] || {};
+      if (filterMaterial !== "all" && matId !== filterMaterial) return;
+      if (filterCoating !== "all" && coatId !== filterCoating) return;
+      if (filterColor !== "all" && colId !== filterColor) return;
+      
+      const mat = CATEGORIES.materials.find(m => m.id === matId);
+      const coat = CATEGORIES.coatings.find(c => c.id === coatId);
+      const col = CATEGORIES.colors.find(c => c.id === colId);
+      
+      const fullName = `${mat?.n || "Unknown"} - ${coat?.n || "Unknown"} - ${col?.n || "Unknown"}`;
+      const colorAccent = col?.color || "#22d3ee";
+
       Object.entries(gStock).forEach(([key, qty]) => {
         if (inStockOnly && qty <= 0) return;
         
@@ -54,11 +66,11 @@ export default function StockBrowser({ stock, setStock, authUser }) {
         if (filterAxis && !axisVal?.toString().includes(filterAxis)) return;
 
         list.push({
-          id: key + g.id,
-          glassId: g.id,
-          glassName: g.name, tag: g.tag, accent: g.accent,
+          id: key + syntheticId,
+          glassId: syntheticId,
+          glassName: fullName, tag: "XX", accent: colorAccent,
           sph, cyl, add, axis: axisVal, qty,
-          barcode: genBC(g.tag, sph, cyl, add, design),
+          barcode: genBC("XX", sph, cyl, add, design),
           design: cleanDesign,
           // 🚀 RAW VALUES FOR THE C# BACKEND DELETION
           rawSph: parseFloat(sph),
@@ -72,7 +84,7 @@ export default function StockBrowser({ stock, setStock, authUser }) {
     });
 
     return list.sort((a, b) => b.qty - a.qty || a.sph.localeCompare(b.sph));
-  }, [stock, filterGlass, filterSph, filterCyl, filterAxis, inStockOnly]);
+  }, [stock, filterMaterial, filterCoating, filterColor, filterSph, filterCyl, filterAxis, inStockOnly]);
 
   const handleDelete = async (item) => {
     if (!window.confirm("আপনি কি নিশ্চিত যে এই এন্ট্রিটি ডাটাবেস থেকে মুছে ফেলতে চান?")) return;
@@ -143,11 +155,27 @@ export default function StockBrowser({ stock, setStock, authUser }) {
         <h3 className="text-xs font-black text-[var(--text-muted)] uppercase tracking-widest mb-5 flex items-center gap-2"><span>🔍</span> ফিল্টার ও অনুসন্ধান</h3>
         
         <div className="flex flex-wrap items-end gap-4">
-          <div className="w-48">
-            <label className="block text-[10px] text-[var(--text-muted)] font-black mb-2 uppercase tracking-widest ml-1">গ্লাস টাইপ</label>
-            <select value={filterGlass} onChange={e => setFilterGlass(e.target.value)} style={inpStyle} className="transition-all focus:border-[#0ea5e9] focus:ring-1 focus:ring-[#0ea5e9]/30">
-              <option value="all">সব টাইপ</option>
-              {GLASS_TYPES.map(g => <option key={g.id} value={g.id}>{g.name}</option>)}
+          <div className="w-40">
+            <label className="block text-[10px] text-[#34d399] font-black mb-2 uppercase tracking-widest ml-1">উপাদান (Material)</label>
+            <select value={filterMaterial} onChange={e => setFilterMaterial(e.target.value)} style={inpStyle} className="transition-all focus:border-[#34d399] focus:ring-1 focus:ring-[#34d399]/30">
+              <option value="all">সব উপাদান</option>
+              {CATEGORIES.materials.map(m => <option key={m.id} value={m.id}>{m.n}</option>)}
+            </select>
+          </div>
+          
+          <div className="w-40">
+            <label className="block text-[10px] text-[#f472b6] font-black mb-2 uppercase tracking-widest ml-1">কোটিং (Coating)</label>
+            <select value={filterCoating} onChange={e => setFilterCoating(e.target.value)} style={inpStyle} className="transition-all focus:border-[#f472b6] focus:ring-1 focus:ring-[#f472b6]/30">
+              <option value="all">সব কোটিং</option>
+              {CATEGORIES.coatings.map(c => <option key={c.id} value={c.id}>{c.n}</option>)}
+            </select>
+          </div>
+
+          <div className="w-32">
+            <label className="block text-[10px] text-[#38bdf8] font-black mb-2 uppercase tracking-widest ml-1">রং (Color)</label>
+            <select value={filterColor} onChange={e => setFilterColor(e.target.value)} style={inpStyle} className="transition-all focus:border-[#38bdf8] focus:ring-1 focus:ring-[#38bdf8]/30">
+              <option value="all">সব রং</option>
+              {CATEGORIES.colors.map(c => <option key={c.id} value={c.id}>{c.n}</option>)}
             </select>
           </div>
 

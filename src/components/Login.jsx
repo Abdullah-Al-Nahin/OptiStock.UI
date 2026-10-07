@@ -15,6 +15,24 @@ export default function Login({ onLogin }) {
     e.preventDefault();
     setLoading(true);
 
+    // MOCK BYPASS FOR PREVIEW MODE
+    if (username === "admin" && password === "123") {
+      setTimeout(() => {
+        const mockUser = {
+          id: "EMP-001",
+          name: "অ্যাডমিন (Super Admin)",
+          username: "admin",
+          role: "Admin",
+          allowedTabs: ["dashboard", "entry", "heatmap", "scanner", "print", "invoices", "browser", "report", "admin"]
+        };
+        localStorage.setItem("optistock_user", JSON.stringify(mockUser));
+        toast.success(`স্বাগতম, ${mockUser.name}! (Preview Mode)`);
+        onLogin(mockUser);
+        setLoading(false);
+      }, 500); // Small delay to feel real
+      return;
+    }
+
     try {
       const response = await fetch(`${API_URL}/api/Auth/login`, {
         method: "POST",

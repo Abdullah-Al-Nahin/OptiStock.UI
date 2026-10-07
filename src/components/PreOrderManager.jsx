@@ -1,22 +1,8 @@
 import React, { useState, useEffect } from "react";
-import { C, GLASS_TYPES, API_BASE_URL } from "../utils/constants";
+import { C, CATEGORIES, API_BASE_URL } from "../utils/constants";
 import { useToast } from "./ToastContext";
 
 const inpStyle = { padding: "12px", borderRadius: 10, border: "1px solid var(--border-color)", background: "var(--bg-main)", color: "var(--text-main)", fontSize: 14, outline: "none", width: "100%" };
-
-// Filter out the 3 designs from the Coating (Glass Type) top grid
-const COATING_TYPES = GLASS_TYPES.filter(g => 
-  !["progressive", "bifocal_moon", "bifocal_d"].includes(g.id)
-);
-
-const LENS_DESIGNS = [
-  { id: "single_vision", name: "সিঙ্গেল ভিশন", sub: "Single Vision" },
-  { id: "bifocal_moon", name: "মুন বাইফোকাল", sub: "Moon Bifocal" },
-  { id: "bifocal_d", name: "ডি-বাইফোকাল", sub: "D-Bifocal" },
-  { id: "progressive", name: "প্রগ্রেসিভ", sub: "Progressive/Varilux" },
-  { id: "high_index", name: "হাই ইনডেক্স", sub: "High Index" },
-  { id: "polycarbonate", name: "পলিকার্বোনেট", sub: "Polycarbonate" }
-];
 
 // AUTO-GENERATE POWER ARRAYS (0.25 steps)
 const generatePowers = (min, max) => {
@@ -39,8 +25,9 @@ export default function PreOrderManager({ authUser }) {
   const [loading, setLoading] = useState(false);
 
   // Form State
-  const [glassType, setGlassType] = useState(COATING_TYPES[0]?.id || "white");
-  const [design, setDesign] = useState(LENS_DESIGNS[0].id);
+  const [material, setMaterial] = useState(CATEGORIES.materials[0].id);
+  const [coating, setCoating] = useState(CATEGORIES.coatings[0].id);
+  const [color, setColor] = useState(CATEGORIES.colors[0].id);
   const [sph, setSph] = useState(""); 
   const [cyl, setCyl] = useState(""); 
   const [axis, setAxis] = useState("");
@@ -72,8 +59,11 @@ export default function PreOrderManager({ authUser }) {
         method: "POST",
         headers: { "Content-Type": "application/json", "Authorization": `Bearer ${authUser.token}` },
         body: JSON.stringify({
-          glassTypeId: glassType,
-          design: design,
+          glassTypeId: `${material}_${coating}_${color}`,
+          material: material,
+          coating: coating,
+          color: color,
+          design: "standard",
           sph: parseFloat(sph || 0),
           cyl: parseFloat(cyl || 0),
           axis: axis === "" ? null : parseInt(axis, 10),
@@ -111,8 +101,9 @@ export default function PreOrderManager({ authUser }) {
     }
   };
 
-  const activeGlass = COATING_TYPES.find(g => g.id === glassType);
-  const activeDesign = LENS_DESIGNS.find(d => d.id === design);
+  const activeMat = CATEGORIES.materials.find(m => m.id === material);
+  const activeCoat = CATEGORIES.coatings.find(c => c.id === coating);
+  const activeCol = CATEGORIES.colors.find(c => c.id === color);
 
   return (
     <div className="animate-in fade-in zoom-in-95 duration-500 space-y-6 pb-10">
@@ -136,51 +127,42 @@ export default function PreOrderManager({ authUser }) {
                 <h3 className="text-xs font-black text-[#0ea5e9] uppercase tracking-widest">লেন্স টাইপ নির্বাচন</h3>
               </div>
               
-              <div className="text-[11px] text-[var(--text-muted)] font-black mb-3 uppercase tracking-widest ml-1">কোটিং:</div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
-                {COATING_TYPES.map(g => (
-                  <div 
-                    key={g.id} 
-                    onClick={() => setGlassType(g.id)}
-                    className={`p-4 rounded-xl border cursor-pointer flex items-center gap-4 transition-all ${
-                      glassType === g.id 
-                        ? "border-[#0ea5e9] bg-[#0ea5e9]/5 shadow-[0_0_15px_rgba(14,165,233,0.1)]" 
-                        : "border-[var(--border-color)] bg-[var(--bg-card)] hover:border-[var(--text-muted)]"
-                    }`}
-                  >
-                    <span className="w-3 h-3 rounded-full shadow-[0_0_8px_currentColor]" style={{background: g.accent || '#94a3b8', color: g.accent || '#94a3b8'}}></span>
-                    <div>
-                      <div className="font-bold text-[var(--text-main)] text-sm">{g.name}</div>
-                      <div className="text-[10px] text-[var(--text-muted)] mt-0.5">{g.subName || g.name}</div>
-                    </div>
+              <div className="text-[11px] text-[var(--text-muted)] font-black mb-3 uppercase tracking-widest ml-1">১. ম্যাটেরিয়াল (Material):</div>
+              <div className="grid grid-cols-2 md:grid-cols-5 gap-3 mb-6">
+                {CATEGORIES.materials.map(m => (
+                  <div key={m.id} onClick={() => setMaterial(m.id)} className={`p-3 rounded-xl border cursor-pointer flex flex-col items-center justify-center gap-2 transition-all ${material === m.id ? "border-[#0ea5e9] bg-[#0ea5e9]/5 shadow-sm" : "border-[var(--border-color)] bg-[var(--bg-card)] opacity-70 hover:opacity-100"}`}>
+                    <span className="w-3 h-3 rounded-full" style={{background: m.color}}></span>
+                    <div className="font-bold text-xs text-center">{m.n}</div>
                   </div>
                 ))}
               </div>
 
-              <div className="text-[11px] text-[var(--text-muted)] font-black mb-3 uppercase tracking-widest ml-1">লেন্স ডিজাইন</div>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-                {LENS_DESIGNS.map(d => (
-                  <div 
-                    key={d.id} 
-                    onClick={() => setDesign(d.id)}
-                    className={`p-4 rounded-xl border cursor-pointer transition-all ${
-                      design === d.id 
-                        ? "border-[#0ea5e9] bg-[#0ea5e9]/5 shadow-[0_0_15px_rgba(14,165,233,0.1)]" 
-                        : "border-[var(--border-color)] bg-[var(--bg-card)] hover:border-[var(--text-muted)]"
-                    }`}
-                  >
-                    <div className={`font-bold text-sm ${design === d.id ? "text-[#0ea5e9]" : "text-[var(--text-main)]"}`}>{d.name}</div>
-                    <div className="text-[10px] text-[var(--text-muted)] mt-0.5">{d.sub}</div>
+              <div className="text-[11px] text-[var(--text-muted)] font-black mb-3 uppercase tracking-widest ml-1">২. কোটিং (Coating):</div>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+                {CATEGORIES.coatings.map(c => (
+                  <div key={c.id} onClick={() => setCoating(c.id)} className={`p-3 rounded-xl border cursor-pointer transition-all ${coating === c.id ? "border-[#4ade80] bg-[#4ade80]/5 shadow-sm" : "border-[var(--border-color)] bg-[var(--bg-card)] opacity-70 hover:opacity-100"}`}>
+                    <div className={`font-bold text-xs ${coating === c.id ? "text-[#4ade80]" : "text-[var(--text-main)]"}`}>{c.n}</div>
                   </div>
                 ))}
               </div>
 
-              <div className="p-4 rounded-xl border border-[var(--border-color)] bg-[var(--bg-card)] flex items-center gap-3 mt-4">
-                <span className="text-[10px] text-[var(--text-muted)] font-black uppercase tracking-widest mr-2">নির্বাচিত লেন্স</span>
-                <span className="w-2.5 h-2.5 rounded-full shadow-[0_0_8px_currentColor]" style={{background: activeGlass?.accent || '#94a3b8', color: activeGlass?.accent || '#94a3b8'}}></span>
-                <span className="font-bold text-[var(--text-main)] text-sm">{activeGlass?.name}</span>
+              <div className="text-[11px] text-[var(--text-muted)] font-black mb-3 uppercase tracking-widest ml-1">৩. কালার (Color):</div>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+                {CATEGORIES.colors.map(c => (
+                  <div key={c.id} onClick={() => setColor(c.id)} className={`p-3 rounded-xl border cursor-pointer transition-all flex items-center gap-2 ${color === c.id ? "border-[#fbbf24] bg-[#fbbf24]/5 shadow-sm" : "border-[var(--border-color)] bg-[var(--bg-card)] opacity-70 hover:opacity-100"}`}>
+                    <span className="text-lg">{c.icon}</span>
+                    <div className={`font-bold text-xs ${color === c.id ? "text-[#fbbf24]" : "text-[var(--text-main)]"}`}>{c.n}</div>
+                  </div>
+                ))}
+              </div>
+
+              <div className="p-4 rounded-xl border border-[var(--border-color)] bg-[var(--bg-card)] flex flex-wrap items-center gap-3 mt-4">
+                <span className="text-[10px] text-[var(--text-muted)] font-black uppercase tracking-widest mr-2">নির্বাচিত লেন্স:</span>
+                <span className="font-bold text-[var(--text-main)] text-sm">{activeMat?.n}</span>
                 <span className="text-[var(--text-muted)] font-black text-sm mx-1">+</span>
-                <span className="font-bold text-[#0ea5e9] text-sm">{activeDesign?.name || design}</span>
+                <span className="font-bold text-[#4ade80] text-sm">{activeCoat?.n}</span>
+                <span className="text-[var(--text-muted)] font-black text-sm mx-1">+</span>
+                <span className="font-bold text-[#fbbf24] text-sm">{activeCol?.n}</span>
               </div>
             </div>
 
@@ -257,11 +239,11 @@ export default function PreOrderManager({ authUser }) {
                     </td>
                     <td className="p-5 font-bold text-[var(--text-main)]">
                       <div className="flex items-center gap-3">
-                         <span className="w-2.5 h-2.5 rounded-full shadow-[0_0_8px_currentColor]" style={{background: GLASS_TYPES.find(g => g.id === order.glassTypeId)?.accent || "#0ea5e9", color: GLASS_TYPES.find(g => g.id === order.glassTypeId)?.accent || "#0ea5e9"}}></span>
-                         <span>{GLASS_TYPES.find(g => g.id === order.glassTypeId)?.name || order.glassTypeId}</span>
+                         <span className="w-2.5 h-2.5 rounded-full shadow-[0_0_8px_currentColor]" style={{background: CATEGORIES.materials.find(m => m.id === order.material)?.color || "#0ea5e9"}}></span>
+                         <span>{CATEGORIES.materials.find(m => m.id === order.material)?.n || order.material}</span>
                        </div>
                       <div className="text-[10px] text-[var(--text-muted)] tracking-widest uppercase font-bold mt-1 ml-5">
-                         {LENS_DESIGNS.find(d => d.id === order.design)?.name || order.design}
+                         {CATEGORIES.coatings.find(c => c.id === order.coating)?.n} • {CATEGORIES.colors.find(c => c.id === order.color)?.n}
                       </div>
                     </td>
                     <td className="p-5 text-center font-mono font-black text-[#f472b6] text-base">{order.sph > 0 ? `+${order.sph.toFixed(2)}` : order.sph.toFixed(2)}</td>
