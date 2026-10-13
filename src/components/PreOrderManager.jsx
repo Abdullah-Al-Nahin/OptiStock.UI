@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { C, CATEGORIES, API_BASE_URL } from "../utils/constants";
+import { C, CATEGORIES, API_BASE_URL, ADD_LIST } from "../utils/constants";
 import { useToast } from "./ToastContext";
 
 const inpStyle = { padding: "12px", borderRadius: 10, border: "1px solid var(--border-color)", background: "var(--bg-main)", color: "var(--text-main)", fontSize: 14, outline: "none", width: "100%" };
@@ -28,11 +28,14 @@ export default function PreOrderManager({ authUser }) {
   const [material, setMaterial] = useState(CATEGORIES.materials[0].id);
   const [coating, setCoating] = useState(CATEGORIES.coatings[0].id);
   const [color, setColor] = useState(CATEGORIES.colors[0].id);
+  const [design, setDesign] = useState(CATEGORIES.designs[0].id);
   const [sph, setSph] = useState(""); 
   const [cyl, setCyl] = useState(""); 
   const [axis, setAxis] = useState("");
   const [addVal, setAddVal] = useState("");
   const [qty, setQty] = useState("");
+  
+  const showAdd = ["progressive", "bifocal_moon", "bifocal_d"].includes(design);
 
   const [fulfillModal, setFulfillModal] = useState({ open: false, orderId: null, price: "" });
 
@@ -63,11 +66,11 @@ export default function PreOrderManager({ authUser }) {
           material: material,
           coating: coating,
           color: color,
-          design: "standard",
+          design: design,
           sph: parseFloat(sph || 0),
           cyl: parseFloat(cyl || 0),
           axis: axis === "" ? null : parseInt(axis, 10),
-          add: parseFloat(addVal || 0),
+          add: showAdd ? parseFloat(addVal || 0) : 0,
           qty: parseInt(qty || 1, 10)
         })
       });
@@ -164,6 +167,16 @@ export default function PreOrderManager({ authUser }) {
                 <span className="text-[var(--text-muted)] font-black text-sm mx-1">+</span>
                 <span className="font-bold text-[#fbbf24] text-sm">{activeCol?.n}</span>
               </div>
+              
+              <div className="mt-6 text-[11px] text-[var(--text-muted)] font-black mb-3 uppercase tracking-widest ml-1">৪. লেন্স ডিজাইন (Lens Design):</div>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                {CATEGORIES.designs.map(d => (
+                  <div key={d.id} onClick={() => setDesign(d.id)} className={`p-3 rounded-xl border cursor-pointer transition-all flex items-center gap-2 ${design === d.id ? "border-[#818cf8] bg-[#818cf8]/5 shadow-sm" : "border-[var(--border-color)] bg-[var(--bg-card)] opacity-70 hover:opacity-100"}`}>
+                    <span className="text-lg">{d.icon}</span>
+                    <div className={`font-bold text-xs ${design === d.id ? "text-[#818cf8]" : "text-[var(--text-main)]"}`}>{d.n}</div>
+                  </div>
+                ))}
+              </div>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
@@ -197,10 +210,17 @@ export default function PreOrderManager({ authUser }) {
                 <input type="number" placeholder="90" value={axis} onChange={e => setAxis(e.target.value)} style={inpStyle} className="transition-all focus:border-[#38bdf8] focus:ring-1 focus:ring-[#38bdf8]/30 font-mono" />
               </div>
 
-              <div className="space-y-2 lg:col-span-1">
-                <label className="block text-[10px] text-[#c084fc] font-black mb-2 uppercase tracking-widest ml-1">ADD (Optional)</label>
-                <input type="number" step="0.25" placeholder="0.00" value={addVal} onChange={e => setAddVal(e.target.value)} style={inpStyle} className="transition-all focus:border-[#c084fc] focus:ring-1 focus:ring-[#c084fc]/30 font-mono" />
-              </div>
+              {showAdd && (
+                <div className="space-y-2 lg:col-span-1 animate-in slide-in-from-left-4">
+                  <label className="block text-[10px] text-[#c084fc] font-black mb-2 uppercase tracking-widest ml-1">ADD (পাওয়ার)</label>
+                  <select required value={addVal} onChange={e => setAddVal(e.target.value)} style={inpStyle} className="transition-all focus:border-[#c084fc] focus:ring-1 focus:ring-[#c084fc]/30 font-mono">
+                    <option value="" disabled>নির্বাচন করুন</option>
+                    {ADD_LIST.map(val => (
+                      <option key={val.label} value={val.label}>{val.label}</option>
+                    ))}
+                  </select>
+                </div>
+              )}
             </div>
 
             <button disabled={loading} type="submit" className="w-full bg-[#0ea5e9] hover:bg-[#0284c7] text-white font-black py-4 rounded-xl shadow-lg transition-all tracking-widest uppercase disabled:opacity-50 flex items-center justify-center gap-2">

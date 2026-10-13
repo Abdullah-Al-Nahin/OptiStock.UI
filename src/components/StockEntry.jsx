@@ -1,7 +1,7 @@
 // src/components/StockEntry.jsx
 import React, { useState, useMemo, useEffect } from "react";
 import { 
-  IN_SUB, OUT_SUB, SM, SPH_LIST, CYL_LIST, 
+  IN_SUB, OUT_SUB, SM, SPH_LIST, CYL_LIST, ADD_LIST,
   C, makeKey, genBC, fmtTk, buildUPCEBars, CATEGORIES
 } from "../utils/constants";
 import { useToast } from "./ToastContext"; 
@@ -259,6 +259,19 @@ export default function StockEntry({ authUser, stock, setStock, txns, setTxns })
                   disabled={!hasCylVal}
                 />
               </div>
+
+              {showAdd && (
+                <div className="flex-1 min-w-[130px] animate-in zoom-in duration-300">
+                  <label style={{...lbl, color:"#c084fc"}}>ADD POWER</label>
+                  <select 
+                    value={form.add} 
+                    onChange={e => setForm({...form, add: e.target.value})} 
+                    style={{...inp, borderColor: "#c084fc40"}}
+                  >
+                    {ADD_LIST.map(a => <option key={a.value} value={a.value===0?"0.00":a.value>0?"+"+a.value.toFixed(2):a.value.toFixed(2)}>{a.label}</option>)}
+                  </select>
+                </div>
+              )}
             </div>
 
             <div className="bg-[var(--bg-card)] p-3 rounded-lg border border-[var(--border-color)] text-center">

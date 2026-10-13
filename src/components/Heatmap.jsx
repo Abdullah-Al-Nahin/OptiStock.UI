@@ -1,7 +1,7 @@
 // src/components/Heatmap.jsx
 import React, { useState, useMemo, useRef, useEffect } from "react";
 import { 
-  C, makeKey, parseKey, genBC, buildUPCEBars, SPH_LIST, CYL_LIST, CATEGORIES 
+  C, makeKey, parseKey, genBC, buildUPCEBars, SPH_LIST, CYL_LIST, ADD_LIST, CATEGORIES 
 } from "../utils/constants";
 import { useToast } from "./ToastContext"; 
 import { OptiLogo } from "./Icons"; 
@@ -47,6 +47,7 @@ export default function Heatmap({ authUser, stock, setStock, txns, setTxns }) {
   const [hmColor, setHmColor] = useState("clear");
   const [hmDesign, setHmDesign] = useState("single_vision");
   const [hmAxis, setHmAxis] = useState(0); 
+  const [hmAdd, setHmAdd] = useState("0.00");
   const [hmSel, setHmSel] = useState(null);
 
   const gridRef = useRef(null);
@@ -93,7 +94,10 @@ export default function Heatmap({ authUser, stock, setStock, txns, setTxns }) {
           }
           
           const hasCyl = parseFloat(cyl) !== 0;
-          if (!hasCyl || itemAxis === hmAxis) {
+          const showAdd = ["progressive","bifocal_moon","bifocal_d"].includes(hmDesign);
+          const matchAdd = !showAdd || parseFloat(parsed.add) === parseFloat(hmAdd);
+
+          if ((!hasCyl || itemAxis === hmAxis) && matchAdd) {
             foundQty += v;
             foundKey = k;
           }
@@ -103,7 +107,8 @@ export default function Heatmap({ authUser, stock, setStock, txns, setTxns }) {
       }
     });
 
-    const baseKey = makeKey(sph, cyl, "0.00", hmDesign);
+    const showAdd = ["progressive","bifocal_moon","bifocal_d"].includes(hmDesign);
+    const baseKey = makeKey(sph, cyl, showAdd ? hmAdd : "0.00", hmDesign);
     const fallbackKey = parseFloat(cyl) !== 0 ? `${baseKey}_ax${hmAxis}` : baseKey;
     return { qty: foundQty, stockKey: foundKey || fallbackKey };
   };
@@ -158,7 +163,7 @@ export default function Heatmap({ authUser, stock, setStock, txns, setTxns }) {
         }
       }, 150);
     }
-  }, [hmMaterial, hmCoating, hmColor, hmDesign, hmAxis, stock]); 
+  }, [hmMaterial, hmCoating, hmColor, hmDesign, hmAxis, hmAdd, stock]);
 
 
   const quickAdjustStock = async (delta) => {
@@ -182,7 +187,7 @@ export default function Heatmap({ authUser, stock, setStock, txns, setTxns }) {
       sph: parseFloat(hmSel.sph), 
       cyl: parseFloat(hmSel.cyl), 
       axis: hasCyl ? hmAxis : null,
-      add: "0.00",
+      add: ["progressive","bifocal_moon","bifocal_d"].includes(hmDesign) ? hmAdd : "0.00",
       qty: Math.abs(delta),
       unitPrice: 0,
       totalPrice: 0,
@@ -315,19 +320,41 @@ export default function Heatmap({ authUser, stock, setStock, txns, setTxns }) {
             {activeName} <span className="text-[var(--text-muted)]">·</span> <span className="text-[#22d3ee]">{CATEGORIES.designs.find(d=>d.id===hmDesign)?.n}</span>
           </div>
 
-          <div className="flex items-center gap-1.5 bg-[var(--bg-main)] p-1.5 rounded-xl border border-[var(--border-color)] max-w-full overflow-x-auto custom-scrollbar shadow-inner">
-            <span className="text-[10px] text-[#38bdf8] font-black uppercase px-3 py-1 border-r border-[var(--border-color)] sticky left-0 bg-[var(--bg-main)] z-10">Axis:</span>
-            <div className="flex items-center gap-1 px-1">
-              {AXIS_OPTIONS.map(ax => (
-                <button 
-                  key={ax} 
-                  onClick={() => setHmAxis(ax)}
-                  className={`px-2.5 py-1 rounded-md text-[11px] font-mono font-bold transition-all flex-shrink-0 ${hmAxis === ax ? "bg-[#38bdf8] text-[var(--bg-main)] shadow-md" : "text-[var(--text-muted)] hover:text-[var(--text-main)] hover:bg-[var(--border-color)]"}`}
-                >
-                  {ax}°
-                </button>
-              ))}
+          <div className="flex flex-col gap-2 max-w-full">
+            <div className="flex items-center gap-1.5 bg-[var(--bg-main)] p-1.5 rounded-xl border border-[var(--border-color)] overflow-x-auto custom-scrollbar shadow-inner">
+              <span className="text-[10px] text-[#38bdf8] font-black uppercase px-3 py-1 border-r border-[var(--border-color)] sticky left-0 bg-[var(--bg-main)] z-10">Axis:</span>
+              <div className="flex items-center gap-1 px-1">
+                {AXIS_OPTIONS.map(ax => (
+                  <button 
+                    key={ax} 
+                    onClick={() => setHmAxis(ax)}
+                    className={`px-2.5 py-1 rounded-md text-[11px] font-mono font-bold transition-all flex-shrink-0 ${hmAxis === ax ? "bg-[#38bdf8] text-[var(--bg-main)] shadow-md" : "text-[var(--text-muted)] hover:text-[var(--text-main)] hover:bg-[var(--border-color)]"}`}
+                  >
+                    {ax}°
+                  </button>
+                ))}
+              </div>
             </div>
+
+            {["progressive","bifocal_moon","bifocal_d"].includes(hmDesign) && (
+              <div className="flex items-center gap-1.5 bg-[var(--bg-main)] p-1.5 rounded-xl border border-[#c084fc40] overflow-x-auto custom-scrollbar shadow-inner animate-in zoom-in">
+                <span className="text-[10px] text-[#c084fc] font-black uppercase px-3 py-1 border-r border-[var(--border-color)] sticky left-0 bg-[var(--bg-main)] z-10">Add:</span>
+                <div className="flex items-center gap-1 px-1">
+                  {ADD_LIST.map(a => {
+                    const valStr = a.value === 0 ? "0.00" : a.value > 0 ? "+" + a.value.toFixed(2) : a.value.toFixed(2);
+                    return (
+                      <button 
+                        key={valStr} 
+                        onClick={() => setHmAdd(valStr)}
+                        className={`px-2.5 py-1 rounded-md text-[11px] font-mono font-bold transition-all flex-shrink-0 ${hmAdd === valStr ? "bg-[#c084fc] text-[var(--bg-main)] shadow-md" : "text-[var(--text-muted)] hover:text-[var(--text-main)] hover:bg-[var(--border-color)]"}`}
+                      >
+                        {a.label}
+                      </button>
+                    )
+                  })}
+                </div>
+              </div>
+            )}
           </div>
         </div>
         
@@ -357,7 +384,7 @@ export default function Heatmap({ authUser, stock, setStock, txns, setTxns }) {
                     <button 
                       key={cyl} 
                       id={`cell-${sphIndex}-${cylIndex}`} 
-                      onClick={() => setHmSel(isSel ? null : {key:selKey, sph, cyl, glassId:syntheticGlassId, qty:q, barcode:genBC("XX",sph,cyl,"0.00",hmDesign), stockKey})}
+                      onClick={() => setHmSel(isSel ? null : {key:selKey, sph, cyl, glassId:syntheticGlassId, qty:q, barcode:genBC("XX",sph,cyl,["progressive","bifocal_moon","bifocal_d"].includes(hmDesign) ? hmAdd : "0.00",hmDesign), stockKey})}
                       className="w-[42px] h-[26px] mx-[1px] rounded flex items-center justify-center transition-colors flex-shrink-0"
                       style={{background: isSel ? "#1d4ed8" : cellBg(q), border: `1px solid ${isSel ? "#60a5fa" : "var(--border-color)"}`, zIndex: isSel ? 5 : 1}}>
                       <span className={`text-[10px] font-black font-mono ${q === 0 ? "opacity-30" : ""}`} style={{color: isSel ? "#fff" : cellFg(q)}}>{q > 0 ? q : "·"}</span>
@@ -378,6 +405,9 @@ export default function Heatmap({ authUser, stock, setStock, txns, setTxns }) {
                 <span className="text-[#f472b6] text-lg mr-1">S</span>{hmSel.sph} 
                 <span className="text-[#a3e635] text-lg ml-4 mr-1">C</span>{hmSel.cyl}
                 <span className="text-[#38bdf8] text-lg ml-4 mr-1">Ax</span>{hmAxis}°
+                {["progressive","bifocal_moon","bifocal_d"].includes(hmDesign) && (
+                  <><span className="text-[#c084fc] text-lg ml-4 mr-1">Add</span>{hmAdd}</>
+                )}
               </div>
             </div>
             <div className="flex items-center gap-6 bg-[var(--bg-main)] p-3 rounded-xl border border-[var(--border-color)]">
